@@ -1,0 +1,306 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Brand: teal #25a2af */
+    --primary: 186 65% 42%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 186 65% 56%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 186 65% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 186 65% 42%;
+
+    /* Custom design tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(186 65% 42%), hsl(186 65% 56%));
+    --gradient-background: linear-gradient(135deg, hsl(186 65% 46%), hsl(186 65% 36%));
+    
+    --shadow-elegant: 0 4px 20px -4px hsl(186 65% 42% / 0.2);
+    --shadow-card: 0 2px 10px -2px hsl(222.2 84% 4.9% / 0.1);
+    
+    --dark-button: 220 13% 18%;
+    --dark-button-foreground: 0 0% 100%;
+    --dark-button-hover: 220 13% 25%;
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 186 65% 52%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 186 65% 66%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 186 65% 52%;
+    --shadow-elegant: 0 4px 20px -4px hsl(186 65% 52% / 0.3);
+    --shadow-card: 0 2px 10px -2px hsl(0 0% 0% / 0.2);
+    
+    --dark-button: 220 13% 18%;
+    --dark-button-hover: 220 13% 25%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.45) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.45);
+    border-radius: 9999px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.65);
+  }
+}
+
+@layer components {
+  /* Electric lightning effect wrapper */
+  .electric-card {
+    position: relative;
+    z-index: 0;
+  }
+
+  /* Soft electric glow behind the card */
+  .electric-card::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: 1rem; /* ~ rounded-2xl */
+    background:
+      radial-gradient(40% 35% at 30% 20%, rgba(125, 249, 255, 0.35), transparent 60%),
+      radial-gradient(45% 40% at 70% 80%, rgba(125, 249, 255, 0.25), transparent 65%);
+    filter: blur(10px);
+    opacity: 0.6;
+    pointer-events: none;
+    animation: electricPulse 1.8s ease-in-out infinite;
+    z-index: -1;
+  }
+
+  .electric-svg {
+    position: absolute;
+    inset: -4px;
+    width: calc(100% + 8px);
+    height: calc(100% + 8px);
+    pointer-events: none;
+  }
+
+  .electric-stroke {
+    stroke: rgb(125 249 255);
+    stroke-width: 2;
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    filter:
+      drop-shadow(0 0 8px rgba(125, 249, 255, 0.9))
+      drop-shadow(0 0 16px rgba(125, 249, 255, 0.6));
+    opacity: 0.9;
+    stroke-dasharray: 8 14;
+    animation: electricDash 2.4s linear infinite, electricFlicker 1.8s ease-in-out infinite;
+  }
+
+  @keyframes electricDash {
+    to {
+      stroke-dashoffset: -64;
+    }
+  }
+
+  @keyframes electricFlicker {
+    0%, 100% {
+      opacity: 0.95;
+      filter:
+        drop-shadow(0 0 8px rgba(125, 249, 255, 0.9))
+        drop-shadow(0 0 16px rgba(125, 249, 255, 0.6));
+    }
+    50% {
+      opacity: 0.7;
+      filter:
+        drop-shadow(0 0 12px rgba(125, 249, 255, 0.9))
+        drop-shadow(0 0 24px rgba(125, 249, 255, 0.7));
+    }
+  }
+
+  @keyframes electricPulse {
+    0%, 100% {
+      opacity: 0.45;
+      transform: scale(0.995);
+    }
+    50% {
+      opacity: 0.85;
+      transform: scale(1.015);
+    }
+  }
+ 
+  .neon-highlight-badge {
+    position: relative;
+    overflow: visible;
+    border-radius: 9999px;
+    box-shadow:
+      0 0 6px rgba(255, 255, 255, 0.3),
+      0 0 12px rgba(255, 255, 255, 0.35),
+      0 0 22px rgba(59, 130, 246, 0.6);
+    animation: badgeBounce 2.2s ease-in-out infinite;
+  }
+ 
+  .neon-highlight-badge::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 2px solid rgba(147, 197, 253, 0.95);
+    box-shadow:
+      0 0 6px rgba(125, 211, 252, 0.8),
+      0 0 14px rgba(59, 130, 246, 0.75),
+      inset 0 0 6px rgba(191, 219, 254, 0.6);
+    opacity: 0.95;
+    pointer-events: none;
+    animation: neonBorderPulse 1.4s ease-in-out infinite;
+  }
+
+  .neon-highlight-badge::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.8), rgba(59, 130, 246, 0));
+    opacity: 0.75;
+    filter: blur(8px);
+    z-index: -1;
+    animation: neonPulse 1.6s ease-in-out infinite;
+  }
+ 
+  @keyframes neonPulse {
+    0%, 100% {
+      opacity: 0.55;
+      transform: scale(0.96);
+      filter: blur(7px);
+    }
+    50% {
+      opacity: 0.95;
+      transform: scale(1.04);
+      filter: blur(10px);
+    }
+  }
+ 
+  @keyframes neonBorderPulse {
+    0%, 100% {
+      opacity: 0.75;
+      transform: scale(0.98);
+      box-shadow:
+        0 0 5px rgba(125, 211, 252, 0.6),
+        0 0 10px rgba(59, 130, 246, 0.55),
+        inset 0 0 4px rgba(191, 219, 254, 0.4);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.02);
+      box-shadow:
+        0 0 8px rgba(125, 211, 252, 0.9),
+        0 0 18px rgba(59, 130, 246, 0.85),
+        inset 0 0 6px rgba(191, 219, 254, 0.6);
+    }
+  }
+
+  @keyframes badgeBounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    25% {
+      transform: translateY(-2px);
+    }
+    50% {
+      transform: translateY(0);
+    }
+    75% {
+      transform: translateY(-1px);
+    }
+  }
+}

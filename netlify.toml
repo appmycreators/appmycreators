@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Single Page App routing: redirect all to index.html
+# EXCEPT static files (js, css, images, fonts, etc)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+  conditions = {Role = ["missing"]}
