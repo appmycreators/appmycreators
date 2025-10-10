@@ -25,7 +25,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import closeSidebarIcon from "@/assets/ui/close-sidebar-icon.svg";
-
 const Sidebar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -36,9 +35,9 @@ const Sidebar = () => {
     { icon: Edit, label: "Editar página" },
     { icon: Palette, label: "Customizar" },
     { icon: FileText, label: "Leads", path: "/leads" },
-    { icon: BarChart3, label: "Analytics" },
+    { icon: BarChart3, label: "Analytics", path: "/analytics" },
     { icon: Plus, label: "Adicionar página", badge: "Pro" },
-    { icon: Eye, label: "Ver minha página" },
+    { icon: Eye, label: "Ver uma página" },
     { icon: Settings, label: "Ajustes" },
   ];
   const [collapsed, setCollapsed] = useState(false);

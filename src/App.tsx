@@ -19,6 +19,7 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const EditHeader = lazy(() => import("./pages/EditHeader"));
 const Leads = lazy(() => import("./pages/Leads"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,6 +65,13 @@ const AnimatedRoutes = () => {
               <ProtectedRoute>
                 <PageProvider>
                   <Leads />
+                </PageProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/analytics" element={
+              <ProtectedRoute>
+                <PageProvider>
+                  <Analytics />
                 </PageProvider>
               </ProtectedRoute>
             } />
