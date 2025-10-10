@@ -30,9 +30,10 @@ export const StorageService = {
         };
       }
 
-      // Gerar nome único
+      // Gerar nome único com timestamp para evitar cache
       const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}/avatar.${fileExt}`;
+      const timestamp = Date.now();
+      const fileName = `${userId}/avatar_${timestamp}.${fileExt}`;
 
       // Upload
       const { data, error } = await supabase.storage
@@ -318,6 +319,13 @@ export const StorageService = {
   getPublicUrl(bucket: 'avatars' | 'banners' | 'gallery', path: string): string {
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     return data.publicUrl;
+  },
+
+  /**
+   * Otimizar avatar (quadrado, menor resolução)
+   */
+  async optimizeAvatar(file: File): Promise<File> {
+    return this.compressImage(file, 512, 0.85);
   },
 
   /**

@@ -6,11 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useHeaderSync } from "@/hooks/useHeaderSync";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, AlarmClock } from "lucide-react";
+import { Loader2, AlarmClock, Plus } from "lucide-react";
 import VideoEditorModal from "@/components/VideoEditorModal";
 import ImageEditorModal from "@/components/ImageEditorModal";
 import { getVideoDuration, videoToGif } from "@/utils/videoToGif";
 import { cropImageFromFile } from "@/utils/imageCrop";
+import { StorageService } from "@/services/storageService";
+import customizeAddIcon from "@/assets/customize_add_icon.png";
 import type { GifOptions } from "@/utils/videoToGif";
 import type { ImageCropOptions } from "@/components/ImageEditorModal";
 
@@ -19,20 +21,46 @@ interface EditHeaderFormProps {
   onClose: () => void;
 }
 
+const AVATAR_BORDER_COLORS = [
+  "#ffffff", // Branco
+  "#000000", // Preto
+  "#f59e0b", // Amarelo
+  "#ef4444", // Vermelho
+  "#3b82f6", // Azul
+  "#10b981", // Verde
+  "#8b5cf6", // Roxo
+  "#f97316", // Laranja
+];
+
 const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const headerMediaInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  
+  // Debug: verificar se a imagem está sendo importada
+  console.log('customizeAddIcon:', customizeAddIcon);
+  
+  // Função para evitar cache de avatar
+  const getAvatarUrl = (avatarUrl: string | null) => {
+    if (!avatarUrl) return null;
+    // Se a URL já tem timestamp, não adicionar outro
+    if (avatarUrl.includes('avatar_') && avatarUrl.includes('?')) return avatarUrl;
+    // Adicionar timestamp para evitar cache
+    const separator = avatarUrl.includes('?') ? '&' : '?';
+    return `${avatarUrl}${separator}t=${Date.now()}`;
+  };
   const { 
     profileName, 
     bio: savedBio, 
-    avatarUrl: savedAvatar, 
+    avatarUrl: savedAvatar,
+    avatarBorderColor: savedAvatarBorderColor,
     headerMediaUrl: savedHeaderMedia,
     headerMediaType: savedHeaderMediaType,
     showBadge: savedShowBadge,
     updateProfileName, 
     updateBio, 
     updateAvatar,
+    updateAvatarBorderColor,
     updateHeaderMedia,
     removeHeaderMedia,
     updateShowBadge
@@ -41,6 +69,8 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
   const [name, setName] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const [showBadge, setShowBadge] = useState<boolean>(false);
+  const [avatarBorderColor, setAvatarBorderColor] = useState<string>('#ffffff');
+  const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [headerMediaPreview, setHeaderMediaPreview] = useState<string | null>(null);
@@ -53,11 +83,8 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
   const [tempVideoFile, setTempVideoFile] = useState<File | null>(null);
   const [previousPreview, setPreviousPreview] = useState<string | null>(null);
   const [showImageEditor, setShowImageEditor] = useState(false);
-  const [showAvatarEditor, setShowAvatarEditor] = useState(false);
   const [tempImageFile, setTempImageFile] = useState<File | null>(null);
-  const [tempAvatarFile, setTempAvatarFile] = useState<File | null>(null);
   const [imageCropOptions, setImageCropOptions] = useState<ImageCropOptions | null>(null);
-  const [avatarCropOptions, setAvatarCropOptions] = useState<ImageCropOptions | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   // Sincronizar com dados carregados
@@ -65,10 +92,11 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
     if (profileName) setName(profileName);
     if (savedBio) setBio(savedBio);
     setShowBadge(savedShowBadge);
-    if (savedAvatar) setAvatarPreview(savedAvatar);
+    setAvatarBorderColor(savedAvatarBorderColor);
+    if (savedAvatar) setAvatarPreview(getAvatarUrl(savedAvatar));
     if (savedHeaderMedia) setHeaderMediaPreview(savedHeaderMedia);
     if (savedHeaderMediaType) setHeaderMediaType(savedHeaderMediaType);
-  }, [profileName, savedBio, savedShowBadge, savedAvatar, savedHeaderMedia, savedHeaderMediaType]);
+  }, [profileName, savedBio, savedShowBadge, savedAvatarBorderColor, savedAvatar, savedHeaderMedia, savedHeaderMediaType]);
 
   const onPickImage = () => fileInputRef.current?.click();
   
@@ -77,13 +105,31 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
     setPendingFile(null);
   };
 
-  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
     
-    // Abrir editor de imagem para avatar
-    setTempAvatarFile(f);
-    setShowAvatarEditor(true);
+    setIsProcessingImage(true);
+    
+    try {
+      // Otimizar imagem do avatar (função específica)
+      const optimizedFile = await StorageService.optimizeAvatar(f);
+      const url = URL.createObjectURL(optimizedFile);
+      setAvatarPreview(url);
+      setPendingFile(optimizedFile);
+    } catch (error) {
+      console.error('Erro ao otimizar avatar:', error);
+      // Fallback: usar arquivo original
+      const url = URL.createObjectURL(f);
+      setAvatarPreview(url);
+      setPendingFile(f);
+      toast({
+        title: 'Aviso',
+        description: 'Não foi possível otimizar a imagem, mas ela foi carregada normalmente.',
+      });
+    } finally {
+      setIsProcessingImage(false);
+    }
   };
 
   const onPickHeaderMedia = () => headerMediaInputRef.current?.click();
@@ -185,24 +231,21 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
       updated = true;
     }
 
+    // Salvar cor da borda do avatar se mudou
+    if (avatarBorderColor !== savedAvatarBorderColor) {
+      await updateAvatarBorderColor(avatarBorderColor);
+      updated = true;
+    }
+
     // Fazer upload do avatar se há arquivo pendente
     if (pendingFile) {
       try {
-        if (avatarCropOptions) {
-          setIsProcessingImage(true);
-          // Se já temos o arquivo cropado, usar ele diretamente
-          const fileToUpload = avatarCropOptions.croppedFile || await cropImageFromFile(pendingFile, avatarCropOptions, 1024);
-          await updateAvatar(fileToUpload);
-        } else {
-          await updateAvatar(pendingFile);
-        }
+        await updateAvatar(pendingFile);
         setPendingFile(null);
         updated = true;
       } catch (error) {
         console.error(error);
         toast({ title: 'Erro ao processar imagem', description: 'Tente novamente com outro arquivo.' });
-      } finally {
-        setIsProcessingImage(false);
       }
     }
 
@@ -280,10 +323,26 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
                 )}
               </div>
               <div className="flex-1 space-y-2">
-                <Button onClick={onPickImage} className="w-full h-10 rounded-full bg-foreground text-background hover:bg-foreground/90 transition-colors">
-                  Carregar Imagem
+                <Button 
+                  onClick={onPickImage} 
+                  disabled={isProcessingImage}
+                  className="w-full h-10 rounded-full bg-foreground text-background hover:bg-foreground/90 transition-colors"
+                >
+                  {isProcessingImage ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Otimizando...
+                    </>
+                  ) : (
+                    'Carregar Imagem'
+                  )}
                 </Button>
-                <Button variant="outline" onClick={onRemoveImage} className="w-full h-10 rounded-full text-foreground hover:bg-muted hover:text-foreground transition-colors">
+                <Button 
+                  variant="outline" 
+                  onClick={onRemoveImage} 
+                  disabled={isProcessingImage}
+                  className="w-full h-10 rounded-full text-foreground hover:bg-muted hover:text-foreground transition-colors"
+                >
                   Remover Imagem
                 </Button>
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
@@ -315,6 +374,81 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
                 onCheckedChange={setShowBadge}
               />
             </div>
+          </div>
+
+          {/* Cor da borda do avatar */}
+          <div className="mb-6">
+            <div className="text-sm font-medium text-foreground mb-3">Cor da borda do avatar</div>
+            <div className="flex flex-wrap gap-3">
+              {AVATAR_BORDER_COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => {
+                    setAvatarBorderColor(color);
+                    setShowColorPicker(false);
+                  }}
+                  className={`w-10 h-10 rounded-full border-2 transition-all ${
+                    avatarBorderColor === color 
+                      ? "ring-2 ring-[#25a3b1] border-[#25a3b1]" 
+                      : "border-muted hover:border-muted-foreground"
+                  }`}
+                  style={{ backgroundColor: color }}
+                  aria-label={`Selecionar cor da borda ${color}`}
+                />
+              ))}
+              
+              {/* Botão para abrir color picker customizado */}
+              <button
+                type="button"
+                onClick={() => setShowColorPicker(!showColorPicker)}
+                className={`w-10 h-10 rounded-full transition-all relative ${
+                  showColorPicker || (!AVATAR_BORDER_COLORS.includes(avatarBorderColor) && avatarBorderColor !== '#ffffff') 
+                    ? "ring-2 ring-[#25a3b1]" 
+                    : ""
+                }`}
+                style={{
+                  backgroundColor: !AVATAR_BORDER_COLORS.includes(avatarBorderColor) && avatarBorderColor !== '#ffffff' 
+                    ? avatarBorderColor 
+                    : 'transparent'
+                }}
+                aria-label="Escolher cor personalizada"
+              >
+                <img 
+                  src={customizeAddIcon} 
+                  alt="Personalizar cor" 
+                  className="w-10 h-10 rounded-full"
+                />
+              </button>
+            </div>
+            
+            {/* Color Picker */}
+            {(showColorPicker || (!AVATAR_BORDER_COLORS.includes(avatarBorderColor) && avatarBorderColor !== '#ffffff')) && (
+              <div className="mt-3 p-4 bg-muted/30 rounded-lg border">
+                <div className="text-xs text-muted-foreground mb-3">Escolha uma cor personalizada:</div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={avatarBorderColor}
+                    onChange={(e) => setAvatarBorderColor(e.target.value)}
+                    className="w-12 h-8 rounded border border-muted cursor-pointer"
+                  />
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={avatarBorderColor}
+                      onChange={(e) => setAvatarBorderColor(e.target.value)}
+                      placeholder="#ffffff"
+                      className="w-full px-3 py-1 text-sm border border-muted rounded focus:outline-none focus:ring-2 focus:ring-[#25a3b1]"
+                    />
+                  </div>
+                  <div 
+                    className="w-8 h-8 rounded border-2 border-muted"
+                    style={{ backgroundColor: avatarBorderColor }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Vídeo ou imagem de topo */}
@@ -449,29 +583,6 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
               setImageCropOptions(opts);
               setShowImageEditor(false);
               setTempImageFile(null);
-            }}
-          />
-        )}
-        {/* Editor de imagem para avatar */}
-        {showAvatarEditor && tempAvatarFile && (
-          <ImageEditorModal
-            open={showAvatarEditor}
-            file={tempAvatarFile}
-            initialRatio="1:1"
-            onCancel={() => {
-              setShowAvatarEditor(false);
-              setTempAvatarFile(null);
-              // Limpar input para permitir selecionar novamente
-              if (fileInputRef.current) fileInputRef.current.value = '';
-            }}
-            onConfirm={(opts) => {
-              // Confirmar: atualizar preview e preparar para upload
-              const url = URL.createObjectURL(tempAvatarFile);
-              setAvatarPreview(url);
-              setPendingFile(tempAvatarFile);
-              setAvatarCropOptions(opts);
-              setShowAvatarEditor(false);
-              setTempAvatarFile(null);
             }}
           />
         )}

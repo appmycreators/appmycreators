@@ -105,6 +105,7 @@ export interface PageSettings {
   card_text_color: string | null;
   header_name_color: string | null;
   header_bio_color: string | null;
+  avatar_border_color: string | null;
   show_badge_check: boolean | null;
   gallery_title_color: string | null;
   gallery_card_bg_color: string | null;

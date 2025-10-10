@@ -349,6 +349,16 @@ const PublicPageOptimized = () => {
   const { username } = useParams<{ username: string }>();
   const { resources, galleries, socials, socialsDisplayMode, settings, loading, error } = usePublicPageOptimized(username || '');
   
+  // Função para evitar cache de avatar
+  const getAvatarUrl = useCallback((avatarUrl: string | null) => {
+    if (!avatarUrl) return profileImage;
+    // Se a URL já tem timestamp, não adicionar outro
+    if (avatarUrl.includes('avatar_') && avatarUrl.includes('?')) return avatarUrl;
+    // Adicionar timestamp para evitar cache
+    const separator = avatarUrl.includes('?') ? '&' : '?';
+    return `${avatarUrl}${separator}t=${Date.now()}`;
+  }, []);
+  
   // Memoizar funções para evitar re-criações
   const handleLinkClick = useCallback((url: string) => {
     window.open(url, '_blank');
@@ -366,6 +376,8 @@ const PublicPageOptimized = () => {
   const formatBRL = useCallback((value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), []);
 
+  // Debug: verificar se avatarBorderColor está chegando
+  console.log('Settings avatarBorderColor:', settings.avatarBorderColor);
 
   const header = useMemo(() => (
     <>
@@ -402,36 +414,35 @@ const PublicPageOptimized = () => {
               />
             )}
 
-              <div className="absolute left-0 right-0 bottom-6 z-10 flex flex-col items-center text-center px-4">
-                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white bg-white shadow-md">
-                  <ResponsiveImage
-                    src={settings.avatarUrl || profileImage}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                    widths={[64, 96, 128]}
-                    sizes="64px"
-                    height={64}
-                    loading="eager"
-                    decoding="async"
-                    fetchPriority="high"
-                  />
-                </div>
-                <div className="mt-2 flex items-center gap-2">
-                  <h1 
-                    className="text-xl sm:text-2xl font-extrabold"
-                    style={{ color: settings.headerNameColor || undefined }}
-                  >
-                    {settings.profileName || username}
-                  </h1>
-                  {settings.showBadge && <BadgeCheck className="w-5 h-5 text-sky-500" />}
-                </div>
-                <p 
-                  className="mt-1 text-[13px] sm:text-sm whitespace-pre-line max-w-xl"
-                  style={{ color: settings.headerBioColor || undefined }}
-                >
-                  {settings.bio || 'Criador de conteúdo'}
-                </p>
+            <div className="absolute left-0 right-0 bottom-6 z-10 flex flex-col items-center text-center px-4">
+              <div 
+                className="w-16 h-16 rounded-full overflow-hidden border-2 bg-white shadow-md"
+                style={{ borderColor: settings.avatarBorderColor || '#ffffff' }}
+              >
+                <img 
+                  src={getAvatarUrl(settings.avatarUrl)} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                />
               </div>
+              <div className="mt-2 flex items-center gap-2">
+                <h1 
+                  className="text-xl sm:text-2xl font-extrabold"
+                  style={{ color: settings.headerNameColor || undefined }}
+                >
+                  {settings.profileName || username}
+                </h1>
+                {settings.showBadge && <BadgeCheck className="w-5 h-5 text-sky-500" />}
+              </div>
+              <p 
+                className="mt-1 text-[13px] sm:text-sm whitespace-pre-line max-w-xl"
+                style={{ color: settings.headerBioColor || undefined }}
+              >
+                {settings.bio || 'Criador de conteúdo'}
+              </p>
+            </div>
 
               <button className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white z-10">
                 <MoreVertical className="w-5 h-5" />
@@ -442,17 +453,16 @@ const PublicPageOptimized = () => {
       
       {!settings.headerMediaUrl && (
         <div className="flex flex-col items-center text-center space-y-3">
-          <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-border bg-white shadow-md">
-            <ResponsiveImage
-              src={settings.avatarUrl || profileImage}
+          <div 
+            className="w-20 h-20 rounded-full overflow-hidden border-2 bg-white shadow-md"
+            style={{ borderColor: settings.avatarBorderColor || '#ffffff' }}
+          >
+            <img
+              src={getAvatarUrl(settings.avatarUrl)}
               alt="Profile"
               className="w-full h-full object-cover"
-              widths={[80, 120, 160]}
-              sizes="80px"
-              height={80}
               loading="eager"
               decoding="async"
-              fetchPriority="high"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -648,13 +658,10 @@ const PublicPageOptimized = () => {
                       {resource.icon}
                     </div>
                   ) : (
-                    <ResponsiveImage
-                      src={settings.avatarUrl || profileImage}
+                    <img
+                      src={getAvatarUrl(settings.avatarUrl)}
                       alt="avatar"
                       className="w-full h-full object-cover"
-                      widths={[32, 48, 64]}
-                      sizes="32px"
-                      height={32}
                       loading="lazy"
                       decoding="async"
                     />

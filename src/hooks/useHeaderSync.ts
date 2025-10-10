@@ -11,6 +11,7 @@ interface UseHeaderSyncReturn {
   profileName: string;
   bio: string;
   avatarUrl: string;
+  avatarBorderColor: string;
   headerMediaUrl: string;
   headerMediaType: string;
   headerMediaAspectRatio: HeaderMediaAspectRatio | null;
@@ -22,6 +23,7 @@ interface UseHeaderSyncReturn {
   updateProfileName: (name: string) => Promise<void>;
   updateBio: (bio: string) => Promise<void>;
   updateAvatar: (file: File) => Promise<void>;
+  updateAvatarBorderColor: (color: string) => Promise<void>;
   updateHeaderMedia: (file: File, aspectRatio?: HeaderMediaAspectRatio) => Promise<void>;
   removeHeaderMedia: () => Promise<void>;
   updateShowBadge: (show: boolean) => Promise<void>;
@@ -32,6 +34,7 @@ export const useHeaderSync = (): UseHeaderSyncReturn => {
   const [profileName, setProfileName] = useState<string>('');
   const [bio, setBio] = useState<string>('');
   const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [avatarBorderColor, setAvatarBorderColor] = useState<string>('#ffffff');
   const [headerMediaUrl, setHeaderMediaUrl] = useState<string>('');
   const [headerMediaType, setHeaderMediaType] = useState<string>('');
   const [headerMediaAspectRatio, setHeaderMediaAspectRatio] = useState<HeaderMediaAspectRatio | null>(null);
@@ -52,6 +55,7 @@ export const useHeaderSync = (): UseHeaderSyncReturn => {
     setProfileName(settings.profile_name || '');
     setBio(settings.bio || '');
     setAvatarUrl(settings.avatar_url || '');
+    setAvatarBorderColor(settings.avatar_border_color || '#ffffff');
     setHeaderMediaUrl(settings.header_media_url || '');
     setHeaderMediaType(settings.header_media_type || '');
     setHeaderMediaAspectRatio(settings.header_media_aspect_ratio || null);
@@ -294,10 +298,42 @@ export const useHeaderSync = (): UseHeaderSyncReturn => {
     [pageData.page]
   );
 
+  const updateAvatarBorderColor = useCallback(
+    async (color: string) => {
+      if (!pageData.page) {
+        console.error('pageData.page não disponível');
+        return;
+      }
+
+      setSaveStatus('saving');
+      setSaveError(null);
+
+      try {
+        const success = await PageSettingsService.updateSettings(pageData.page.id, {
+          avatar_border_color: color,
+        });
+
+        if (!success) {
+          throw new Error('Falha ao salvar cor da borda do avatar');
+        }
+
+        setAvatarBorderColor(color);
+        setSaveStatus('saved');
+        setLastSaved(new Date());
+      } catch (error) {
+        console.error('Error updating avatar border color:', error);
+        setSaveStatus('error');
+        setSaveError(error instanceof Error ? error.message : 'Erro ao salvar cor da borda');
+      }
+    },
+    [pageData.page]
+  );
+
   return {
     profileName,
     bio,
     avatarUrl,
+    avatarBorderColor,
     headerMediaUrl,
     headerMediaType,
     headerMediaAspectRatio,
@@ -309,6 +345,7 @@ export const useHeaderSync = (): UseHeaderSyncReturn => {
     updateProfileName,
     updateBio,
     updateAvatar,
+    updateAvatarBorderColor,
     updateHeaderMedia,
     removeHeaderMedia,
     updateShowBadge,
