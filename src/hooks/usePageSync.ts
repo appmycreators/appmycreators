@@ -24,6 +24,7 @@ interface UsePageSyncReturn {
   updateLink: (id: string, data: Partial<Link>) => Promise<void>;
   deleteLink: (id: string) => Promise<void>;
   reorderLinks: (links: Link[]) => Promise<void>;
+  toggleResourceVisibility: (resourceId: string, isVisible: boolean) => Promise<void>;
 }
 
 export const usePageSync = (): UsePageSyncReturn => {
@@ -197,6 +198,24 @@ export const usePageSync = (): UsePageSyncReturn => {
     }
   }, [refreshPage]);
 
+  const toggleResourceVisibility = useCallback(async (resourceId: string, isVisible: boolean) => {
+    setSaveStatus('saving');
+    setSaveError(null);
+
+    try {
+      await ResourceService.updateResource(resourceId, { is_visible: isVisible });
+
+      setSaveStatus('saved');
+      setLastSaved(new Date());
+
+      await refreshPage();
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
+      setSaveStatus('error');
+      setSaveError('Erro ao atualizar visibilidade');
+    }
+  }, [refreshPage]);
+
   return {
     links,
     loading: pageLoading,
@@ -207,5 +226,6 @@ export const usePageSync = (): UsePageSyncReturn => {
     updateLink,
     deleteLink,
     reorderLinks,
+    toggleResourceVisibility,
   };
 };

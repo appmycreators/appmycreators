@@ -17,9 +17,10 @@ interface WhatsAppFormProps {
   onUpdateLink?: (id: string, link: { title: string; url: string; icon?: string; image?: string; bgColor?: string }) => void;
   onSaveFloatingButton?: (config: { enabled: boolean; phone: string; message: string }) => void;
   floatingButtonConfig?: { enabled: boolean; phone: string; message: string };
+  onToggleVisibility?: (resourceId: string, isVisible: boolean) => void;
 }
 
-const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink, onSaveFloatingButton, floatingButtonConfig }: WhatsAppFormProps) => {
+const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink, onSaveFloatingButton, floatingButtonConfig, onToggleVisibility }: WhatsAppFormProps) => {
   const { toast } = useToast();
   const [countryCode, setCountryCode] = useState("+55");
   const [phone, setPhone] = useState("");
@@ -28,15 +29,14 @@ const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink, onS
   const [enableFloating, setEnableFloating] = useState(false);
 
   useEffect(() => {
-    // Carregar configuração do botão flutuante
-    if (open && floatingButtonConfig) {
-      setEnableFloating(floatingButtonConfig.enabled);
-    }
-
     if (open && initialLink) {
       // Prefill from initialLink
       setTitle(initialLink.title || "Fale comigo");
       const url = initialLink.url || "";
+      
+      // Carregar estado do botão flutuante
+      setEnableFloating(floatingButtonConfig?.enabled || false);
+      
       try {
         const u = new URL(url);
         if (u.hostname.includes("wa.me")) {
@@ -70,7 +70,7 @@ const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink, onS
       setPhone("");
       setTitle("Fale comigo");
       setMessage("");
-      setEnableFloating(floatingButtonConfig?.enabled || false);
+      setEnableFloating(false); // Sempre false para novo botão
     }
   }, [open, initialLink, floatingButtonConfig]);
 
@@ -117,6 +117,11 @@ const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink, onS
         message: enableFloating ? message.trim() : "",
       };
       onSaveFloatingButton(floatingConfig);
+    }
+
+    // Esconder/mostrar resource do WhatsApp quando o botão flutuante for ativado/desativado
+    if (initialLink?.id && onToggleVisibility) {
+      onToggleVisibility(initialLink.id, !enableFloating);
     }
 
     // Reset

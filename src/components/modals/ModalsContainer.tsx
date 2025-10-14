@@ -44,6 +44,7 @@ interface ModalsContainerProps {
   handleDeleteGallery: (galleryId: string) => Promise<void>;
   handleSaveSocials: (socials: Record<string, string>, displayMode: 'top' | 'bottom') => Promise<void>;
   handleDeleteAllSocials: () => Promise<void>;
+  handleToggleVisibility: (resourceId: string, isVisible: boolean) => Promise<void>;
 }
 
 const ModalsContainer = ({
@@ -67,6 +68,7 @@ const ModalsContainer = ({
   handleDeleteGallery,
   handleSaveSocials,
   handleDeleteAllSocials,
+  handleToggleVisibility,
 }: ModalsContainerProps) => {
   const { toast } = useToast();
   
@@ -139,6 +141,7 @@ const ModalsContainer = ({
           phone: whatsappFloatingPhone || '',
           message: whatsappFloatingMessage || '',
         }}
+        onToggleVisibility={handleToggleVisibility}
       />
 
       {/* Social Networks Modal */}

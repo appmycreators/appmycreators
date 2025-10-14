@@ -5,6 +5,7 @@ import { useGallerySync } from "@/hooks/useGallerySync";
 import { useImageBannerSync } from "@/hooks/useImageBannerSync";
 import { useFormSync } from "@/hooks/useFormSync";
 import { useSocialSync } from "@/hooks/useSocialSync";
+import { usePageSettings } from "@/hooks/usePageSettings";
 import { GalleryItem } from "@/components/GalleryItemForm";
 import { BlockOrder } from "./useDragAndDrop";
 
@@ -32,7 +33,8 @@ export const useContentHandlers = (
 ) => {
   const { toast } = useToast();
   const { refreshPage } = usePage();
-  const { addLink, updateLink, deleteLink } = usePageSync();
+  const { addLink, updateLink, deleteLink, toggleResourceVisibility } = usePageSync();
+  const { updateWhatsAppFloating } = usePageSettings();
   const { 
     galleries, 
     addGallery, 
@@ -110,6 +112,10 @@ export const useContentHandlers = (
   const handleDeleteLink = async (id: string) => {
     await deleteLink(id);
     setBlocksOrder((prev) => prev.filter((b) => !(b.type === "link" && b.id === id)));
+    
+    // Desativar botão flutuante ao excluir WhatsApp
+    await updateWhatsAppFloating({ enabled: false, phone: '', message: '' });
+    
     toast({
       title: "Link excluído!",
       description: "O link foi removido com sucesso.",
@@ -232,6 +238,11 @@ export const useContentHandlers = (
     });
   };
 
+  // Toggle Resource Visibility Handler
+  const handleToggleVisibility = async (resourceId: string, isVisible: boolean) => {
+    await toggleResourceVisibility(resourceId, isVisible);
+  };
+
   return {
     handleSelectResource,
     handleAddLink,
@@ -249,5 +260,6 @@ export const useContentHandlers = (
     handleDeleteForm,
     handleSaveSocials,
     handleDeleteAllSocials,
+    handleToggleVisibility,
   };
 };

@@ -82,6 +82,7 @@ const MainContent = () => {
     handleDeleteForm,
     handleSaveSocials,
     handleDeleteAllSocials,
+    handleToggleVisibility,
   } = useContentHandlers(
     setBlocksOrder,
     openModal,
@@ -191,6 +192,7 @@ const MainContent = () => {
       handleDeleteGallery={handleDeleteGallery}
       handleSaveSocials={handleSaveSocials}
       handleDeleteAllSocials={handleDeleteAllSocials}
+      handleToggleVisibility={handleToggleVisibility}
     />
   </div>
   );
