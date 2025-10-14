@@ -7,6 +7,7 @@ import ResponsiveImage from "@/components/ResponsiveImage";
 import { FormResource } from "@/components/FormResource";
 import LottieAnimation from "./LottieAnimation";
 import { useGalleryItemComments } from "@/hooks/useGalleryComments";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * PublicContentBlock - Bloco de conteúdo na página pública
@@ -55,6 +56,40 @@ const PublicContentBlock = ({
   galleryHighlightBgColor,
   galleryHighlightTextColor,
 }: PublicContentBlockProps) => {
+  
+  // WhatsApp Block
+  if (item.type === 'whatsapp') {
+    const bgColor = item.bgColor || cardBgColor || '#25D366'; // Verde WhatsApp
+    const textColor = cardTextColor || '#ffffff';
+    
+    return (
+      <div
+        className="group cursor-pointer rounded-full px-4 h-14 flex items-center gap-3 shadow-md hover:opacity-90 transition-all uppercase font-semibold tracking-wide"
+        style={{ backgroundColor: bgColor, color: textColor }}
+        onClick={() => onItemClick?.(item)}
+      >
+        {/* Imagem do WhatsApp */}
+        <div className="w-8 h-8 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
+          {item.image ? (
+            <ResponsiveImage
+              src={item.image}
+              alt=""
+              className="w-full h-full object-cover"
+              widths={[32, 48, 64]}
+              sizes="32px"
+              height={32}
+            />
+          ) : (
+            <div className="w-full h-full bg-white/20 rounded-full" />
+          )}
+        </div>
+        <div className="flex-1 text-left">
+          {item.title}
+        </div>
+        <MoreVertical className="w-5 h-5 opacity-70 group-hover:opacity-100" />
+      </div>
+    );
+  }
   
   // Link Block
   if (item.type === 'link') {
@@ -199,6 +234,7 @@ const PublicContentBlock = ({
 
     // Estado para controlar o modal de comentários
     const [showComments, setShowComments] = useState(false);
+    const { toast } = useToast();
 
     // OTIMIZAÇÃO: Só buscar comentários se prova social estiver ativada
     const shouldFetchComments = item.enableSocialProof === true;
@@ -225,6 +261,58 @@ const PublicContentBlock = ({
     }, [item.enableSocialProof, item.customLikesCount, item.customSharesCount, commentsData?.total]);
 
     const comments = commentsData?.comments || [];
+
+    // Função para compartilhar (Web Share API)
+    const handleShare = async (e: React.MouseEvent) => {
+      e.stopPropagation();
+      
+      const shareData = {
+        title: item.name || 'Confira este produto!',
+        text: item.description || 'Olha que interessante!',
+        url: item.link || window.location.href,
+      };
+
+      try {
+        // Verificar se Web Share API está disponível
+        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          
+          // Opcional: incrementar contador de shares
+          // Você pode adicionar uma chamada à API aqui se quiser rastrear
+          
+          toast({
+            title: "Compartilhado!",
+            description: "Obrigado por compartilhar!",
+          });
+        } else {
+          // Fallback: copiar link
+          await navigator.clipboard.writeText(item.link || window.location.href);
+          toast({
+            title: "Link copiado!",
+            description: "Cole em qualquer lugar para compartilhar.",
+          });
+        }
+      } catch (error) {
+        // Usuário cancelou ou erro
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Erro ao compartilhar:', error);
+          // Fallback final: copiar link
+          try {
+            await navigator.clipboard.writeText(item.link || window.location.href);
+            toast({
+              title: "Link copiado!",
+              description: "Cole em qualquer lugar para compartilhar.",
+            });
+          } catch {
+            toast({
+              title: "Erro ao compartilhar",
+              description: "Não foi possível compartilhar.",
+              variant: "destructive"
+            });
+          }
+        }
+      }
+    };
 
     return (
       <div 
@@ -271,7 +359,11 @@ const PublicContentBlock = ({
                 
                 {/* Compartilhamentos */}
                 {stats.shares > 0 && (
-                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
+                  <div 
+                    className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 cursor-pointer hover:bg-black/70 transition-colors active:scale-95"
+                    onClick={handleShare}
+                    title="Compartilhar"
+                  >
                     <Send className="w-3 h-3 text-white" />
                     <span className="text-[10px] text-white font-medium">{stats.shares}</span>
                   </div>

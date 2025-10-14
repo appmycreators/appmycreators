@@ -65,6 +65,9 @@ export interface Database {
           background_gradient: string | null;
           theme: string;
           font_family: string | null;
+          whatsapp_floating_enabled: boolean;
+          whatsapp_floating_phone: string | null;
+          whatsapp_floating_message: string | null;
           created_at: string;
           updated_at: string;
         };

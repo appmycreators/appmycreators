@@ -6,6 +6,7 @@ import PublicSocialSection from "./public/PublicSocialSection";
 import PublicContentList from "./public/PublicContentList";
 import FontProvider from "./FontProvider";
 import { Button } from "@/components/ui/button";
+import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 
 
 /**
@@ -174,6 +175,15 @@ const PublicPage = () => {
             </Button>
           </div>
         </div>
+        
+        {/* Botão Flutuante do WhatsApp */}
+        {!loading && settings.whatsappFloatingEnabled && settings.whatsappFloatingPhone && (
+          <FloatingWhatsAppButton
+            phone={settings.whatsappFloatingPhone}
+            message={settings.whatsappFloatingMessage || ''}
+            position="bottom-right"
+          />
+        )}
       </div>
     </FontProvider>
   );

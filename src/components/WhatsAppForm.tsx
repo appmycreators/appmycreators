@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 
 interface WhatsAppFormProps {
@@ -14,16 +15,24 @@ interface WhatsAppFormProps {
   onAddLink: (link: { title: string; url: string; icon?: string; image?: string; bgColor?: string }) => void;
   initialLink?: { id?: string; title: string; url: string; icon?: string; image?: string; bgColor?: string };
   onUpdateLink?: (id: string, link: { title: string; url: string; icon?: string; image?: string; bgColor?: string }) => void;
+  onSaveFloatingButton?: (config: { enabled: boolean; phone: string; message: string }) => void;
+  floatingButtonConfig?: { enabled: boolean; phone: string; message: string };
 }
 
-const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink }: WhatsAppFormProps) => {
+const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink, onSaveFloatingButton, floatingButtonConfig }: WhatsAppFormProps) => {
   const { toast } = useToast();
   const [countryCode, setCountryCode] = useState("+55");
   const [phone, setPhone] = useState("");
   const [title, setTitle] = useState("Fale comigo");
   const [message, setMessage] = useState("");
+  const [enableFloating, setEnableFloating] = useState(false);
 
   useEffect(() => {
+    // Carregar configuração do botão flutuante
+    if (open && floatingButtonConfig) {
+      setEnableFloating(floatingButtonConfig.enabled);
+    }
+
     if (open && initialLink) {
       // Prefill from initialLink
       setTitle(initialLink.title || "Fale comigo");
@@ -61,8 +70,9 @@ const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink }: W
       setPhone("");
       setTitle("Fale comigo");
       setMessage("");
+      setEnableFloating(floatingButtonConfig?.enabled || false);
     }
-  }, [open, initialLink]);
+  }, [open, initialLink, floatingButtonConfig]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,11 +109,22 @@ const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink }: W
 
     toast({ title: initialLink?.id ? "Botão do WhatsApp atualizado!" : "Botão do WhatsApp adicionado!" });
 
+    // Salvar configuração do botão flutuante
+    if (onSaveFloatingButton) {
+      const floatingConfig = {
+        enabled: enableFloating,
+        phone: enableFloating ? number : "",
+        message: enableFloating ? message.trim() : "",
+      };
+      onSaveFloatingButton(floatingConfig);
+    }
+
     // Reset
     setPhone("");
     setMessage("");
     setCountryCode("+55");
     setTitle("Fale comigo");
+    setEnableFloating(false);
     onClose();
   };
 
@@ -162,6 +183,25 @@ const WhatsAppForm = ({ open, onClose, onAddLink, initialLink, onUpdateLink }: W
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
             />
+          </div>
+
+          {/* Switch para Botão Flutuante */}
+          <div className="pt-4 pb-2 border-t">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-medium text-foreground">
+                  Botão Flutuante
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Exibir botão do WhatsApp flutuando na página pública
+                </p>
+              </div>
+              <Switch
+                checked={enableFloating}
+                onCheckedChange={setEnableFloating}
+              />
+            </div>
+            
           </div>
 
           <div className="flex gap-2 pt-2">

@@ -8,6 +8,9 @@ interface PageSettings {
   backgroundColor?: string;
   backgroundGradient?: string;
   theme?: string;
+  whatsapp_floating_enabled?: boolean;
+  whatsapp_floating_phone?: string;
+  whatsapp_floating_message?: string;
 }
 
 interface UsePageSettingsReturn {
@@ -20,6 +23,9 @@ interface UsePageSettingsReturn {
   headerBioColor: string | null;
   socialIconBgColor: string | null;
   socialIconColor: string | null;
+  whatsappFloatingEnabled: boolean;
+  whatsappFloatingPhone: string | null;
+  whatsappFloatingMessage: string | null;
   loading: boolean;
   saveStatus: SaveStatus;
   lastSaved: Date | null;
@@ -32,6 +38,7 @@ interface UsePageSettingsReturn {
   updateHeaderBioColor: (color: string) => Promise<void>;
   updateSocialIconBgColor: (color: string) => Promise<void>;
   updateSocialIconColor: (color: string) => Promise<void>;
+  updateWhatsAppFloating: (config: { enabled: boolean; phone: string; message: string }) => Promise<void>;
 }
 
 export const usePageSettings = (): UsePageSettingsReturn => {
@@ -45,6 +52,9 @@ export const usePageSettings = (): UsePageSettingsReturn => {
   const [headerBioColor, setHeaderBioColor] = useState<string | null>(null);
   const [socialIconBgColor, setSocialIconBgColor] = useState<string | null>(null);
   const [socialIconColor, setSocialIconColor] = useState<string | null>(null);
+  const [whatsappFloatingEnabled, setWhatsappFloatingEnabled] = useState<boolean>(false);
+  const [whatsappFloatingPhone, setWhatsappFloatingPhone] = useState<string | null>(null);
+  const [whatsappFloatingMessage, setWhatsappFloatingMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -67,6 +77,9 @@ export const usePageSettings = (): UsePageSettingsReturn => {
     setHeaderBioColor(settings.header_bio_color || null);
     setSocialIconBgColor(settings.social_icon_bg_color || null);
     setSocialIconColor(settings.social_icon_color || null);
+    setWhatsappFloatingEnabled((settings as any).whatsapp_floating_enabled || false);
+    setWhatsappFloatingPhone((settings as any).whatsapp_floating_phone || null);
+    setWhatsappFloatingMessage((settings as any).whatsapp_floating_message || null);
   }, [pageData.settings, pageLoading]);
 
   const updateBackgroundColor = useCallback(
@@ -317,6 +330,41 @@ export const usePageSettings = (): UsePageSettingsReturn => {
     [pageData.page]
   );
 
+  const updateWhatsAppFloating = useCallback(
+    async (config: { enabled: boolean; phone: string; message: string }) => {
+      if (!pageData.page) {
+        console.error('pageData.page não disponível');
+        return;
+      }
+
+      setSaveStatus('saving');
+      setSaveError(null);
+
+      try {
+        const success = await PageSettingsService.updateSettings(pageData.page.id, {
+          whatsapp_floating_enabled: config.enabled,
+          whatsapp_floating_phone: config.phone,
+          whatsapp_floating_message: config.message,
+        } as any);
+
+        if (!success) {
+          throw new Error('Falha ao salvar configurações do WhatsApp');
+        }
+
+        setWhatsappFloatingEnabled(config.enabled);
+        setWhatsappFloatingPhone(config.phone);
+        setWhatsappFloatingMessage(config.message);
+        setSaveStatus('saved');
+        setLastSaved(new Date());
+      } catch (error) {
+        console.error('Error updating WhatsApp floating button:', error);
+        setSaveStatus('error');
+        setSaveError(error instanceof Error ? error.message : 'Erro ao salvar WhatsApp');
+      }
+    },
+    [pageData.page]
+  );
+
   return {
     backgroundColor,
     backgroundGradient,
@@ -327,6 +375,9 @@ export const usePageSettings = (): UsePageSettingsReturn => {
     headerBioColor,
     socialIconBgColor,
     socialIconColor,
+    whatsappFloatingEnabled,
+    whatsappFloatingPhone,
+    whatsappFloatingMessage,
     loading: pageLoading || loading,
     saveStatus,
     lastSaved,
@@ -339,5 +390,6 @@ export const usePageSettings = (): UsePageSettingsReturn => {
     updateHeaderBioColor,
     updateSocialIconBgColor,
     updateSocialIconColor,
+    updateWhatsAppFloating,
   };
 };

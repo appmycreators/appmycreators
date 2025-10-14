@@ -85,7 +85,11 @@ const ModalsContainer = ({
     socialIconBgColor, 
     socialIconColor, 
     updateSocialIconBgColor, 
-    updateSocialIconColor 
+    updateSocialIconColor,
+    whatsappFloatingEnabled,
+    whatsappFloatingPhone,
+    whatsappFloatingMessage,
+    updateWhatsAppFloating
   } = usePageSettings();
   
   const {
@@ -129,6 +133,12 @@ const ModalsContainer = ({
         onAddLink={handleAddLink}
         initialLink={modals.whatsApp.editing}
         onUpdateLink={handleUpdateLink}
+        onSaveFloatingButton={updateWhatsAppFloating}
+        floatingButtonConfig={{
+          enabled: whatsappFloatingEnabled || false,
+          phone: whatsappFloatingPhone || '',
+          message: whatsappFloatingMessage || '',
+        }}
       />
 
       {/* Social Networks Modal */}

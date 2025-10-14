@@ -217,6 +217,9 @@ function transformPageData(pageData: any, username: string) {
       socialIconBgColor: settings.social_icon_bg_color || null,
       socialIconColor: settings.social_icon_color || null,
       fontFamily: settings.font_family || 'Poppins',
+      whatsappFloatingEnabled: settings.whatsapp_floating_enabled || false,
+      whatsappFloatingPhone: settings.whatsapp_floating_phone || null,
+      whatsappFloatingMessage: settings.whatsapp_floating_message || null,
     },
   } as Omit<PublicPageData, 'loading' | 'error'>;
 }
