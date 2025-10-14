@@ -47,11 +47,11 @@ const MyPages = () => {
 
   const handleEditPage = (page: Page) => {
     // Navega para a página de edição passando o ID da página como query param
-    navigate(`/?pageId=${page.id}`);
+    navigate(`/editor?pageId=${page.id}`);
   };
 
   const handleViewPage = (slug: string) => {
-    window.open(`/${slug}`, '_blank');
+    window.open(`https://mycreators.me/${slug}`, '_blank');
   };
 
   const handleOpenEditModal = (page: Page) => {
