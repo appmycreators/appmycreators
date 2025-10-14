@@ -1,7 +1,12 @@
 import { useMemo } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { QRCode } from "react-qrcode-logo";
 
 interface ShareModalProps {
   open: boolean;
@@ -26,12 +31,6 @@ const ShareModal = ({ open, onClose, slug, url }: ShareModalProps) => {
     return "/preview";
   }, [url, slug]);
 
-  const qrImgUrl = useMemo(() => {
-    const data = encodeURIComponent(shareUrl);
-    // External QR code image service (no extra dependency)
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${data}`;
-  }, [shareUrl]);
-
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -48,7 +47,18 @@ const ShareModal = ({ open, onClose, slug, url }: ShareModalProps) => {
         <div className="p-6 sm:p-8 flex flex-col items-center text-center">
           {/* QR container with white padding to emulate border */}
           <div className="bg-white p-3 rounded-2xl">
-            <img src={qrImgUrl} alt="QR Code do seu link" width={300} height={300} className="block rounded-md" />
+            <QRCode
+              value={shareUrl}
+              size={300}
+              logoImage="/images/logo.png"
+              logoWidth={60}
+              logoHeight={60}
+              qrStyle="dots"
+              eyeRadius={10}
+              bgColor="#ffffff"
+              fgColor="#000000"
+              removeQrCodeBehindLogo={true}
+            />
           </div>
 
           <div className="mt-6 space-y-2">
