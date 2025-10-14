@@ -103,6 +103,9 @@ function transformPageData(pageData: any, username: string) {
           buttonText: item.button_text,
           destaque: item.destaque || false,
           lottieAnimation: item.lottie_animation || undefined,
+          enableSocialProof: item.enable_social_proof || false,
+          customLikesCount: item.custom_likes_count || 0,
+          customSharesCount: item.custom_shares_count || 0,
         })),
         collapsed: resource.gallery_data.gallery?.is_collapsed || false,
       });

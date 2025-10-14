@@ -6,10 +6,24 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
-import { X, Image as ImageIcon, Trash2, Sparkles } from "lucide-react";
+import { X, Image as ImageIcon, Trash2, Sparkles, Heart, Send, MessageCircle, Plus, Pencil, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Lottie from "lottie-react";
 import LottieAnimationPicker from "./LottieAnimationPicker";
+import AddCommentModal from "./AddCommentModal";
+import EditCommentModal from "./EditCommentModal";
+import { useGalleryItemComments, useDeleteGalleryComment, useToggleCommentHighlight, type GalleryComment } from "@/hooks/useGalleryComments";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Carregar todos os arquivos .json da pasta lotties
 const lottieFiles = import.meta.glob("@/assets/lotties/*.json", {
@@ -27,6 +41,9 @@ export interface GalleryItem {
   imageUrl?: string; // preview/base64 simples por enquanto
   destaque?: boolean;
   lottieAnimation?: string; // nome do arquivo lottie (ex: 'discount')
+  enableSocialProof?: boolean; // ativar prova social
+  customLikesCount?: number; // número customizado de curtidas
+  customSharesCount?: number; // número customizado de compartilhamentos
 }
 
 interface GalleryItemFormProps {
@@ -51,6 +68,7 @@ const parseToCents = (value: string) => {
 
 export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem, initialItem, onDeleteItem }: GalleryItemFormProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [link, setLink] = useState("");
@@ -63,6 +81,27 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
   const [enableLottie, setEnableLottie] = useState(false);
   const [lottieAnimation, setLottieAnimation] = useState<string>("");
   const [showLottiePicker, setShowLottiePicker] = useState(false);
+  
+  // Estados para Prova Social
+  const [enableSocialProof, setEnableSocialProof] = useState(false);
+  const [customLikesCount, setCustomLikesCount] = useState(0);
+  const [customSharesCount, setCustomSharesCount] = useState(0);
+  const [showAddCommentModal, setShowAddCommentModal] = useState(false);
+  const [showEditCommentModal, setShowEditCommentModal] = useState(false);
+  const [editingComment, setEditingComment] = useState<GalleryComment | null>(null);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+  
+  // Hooks para comentários
+  const { data: commentsData, refetch: refetchComments } = useGalleryItemComments(initialItem?.id || null);
+  const deleteComment = useDeleteGalleryComment();
+  const toggleHighlight = useToggleCommentHighlight();
+
+  // Refetch comentários quando o modal abrir com um produto existente
+  useEffect(() => {
+    if (open && initialItem?.id) {
+      refetchComments();
+    }
+  }, [open, initialItem?.id, refetchComments]);
 
   useEffect(() => {
     if (open) {
@@ -76,6 +115,9 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
         setDestaque(initialItem.destaque || false);
         setEnableLottie(!!initialItem.lottieAnimation);
         setLottieAnimation(initialItem.lottieAnimation || "");
+        setEnableSocialProof(initialItem.enableSocialProof || false);
+        setCustomLikesCount(initialItem.customLikesCount || 0);
+        setCustomSharesCount(initialItem.customSharesCount || 0);
       } else {
         setLink("");
         setName("");
@@ -86,19 +128,13 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
         setDestaque(false);
         setEnableLottie(false);
         setLottieAnimation("");
+        setEnableSocialProof(false);
+        setCustomLikesCount(0);
+        setCustomSharesCount(0);
       }
-    } else {
-      // ao fechar, limpar
-      setLink("");
-      setName("");
-      setDescription("");
-      setPriceCents(0);
-      setButtonText("Saiba Mais");
-      setImageUrl(undefined);
-      setDestaque(false);
-      setEnableLottie(false);
-      setLottieAnimation("");
     }
+    // NOTA: Não limpar estados ao fechar modal
+    // Os valores devem persistir para quando reabrir
   }, [open, initialItem]);
 
   const priceDisplay = useMemo(() => formatBRL(priceCents), [priceCents]);
@@ -145,6 +181,11 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
       imageUrl,
       destaque,
       lottieAnimation: enableLottie ? lottieAnimation : undefined,
+      enableSocialProof,
+      // IMPORTANTE: Sempre salvar os valores, mesmo se prova social desativada
+      // Assim, ao reativar, os números não são perdidos
+      customLikesCount: customLikesCount,
+      customSharesCount: customSharesCount,
     };
 
     console.log('Payload being sent:', payload);
@@ -324,6 +365,244 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
               }}
               selectedAnimation={lottieAnimation}
             />
+
+            {/* Prova Social */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="enable-social-proof">Ativar Prova Social</Label>
+                  <div className="text-xs text-muted-foreground">(Curtidas, Compartilhamentos, Comentários)</div>
+                </div>
+                <Switch
+                  id="enable-social-proof"
+                  checked={enableSocialProof}
+                  onCheckedChange={setEnableSocialProof}
+                />
+              </div>
+
+              {enableSocialProof && (
+                <Card className="p-4 space-y-4 bg-muted/30">
+                  {/* Curtidas */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 flex-1">
+                      <Heart className="w-4 h-4 text-red-500" />
+                      <Label htmlFor="likes-count" className="text-sm">Curtidas</Label>
+                    </div>
+                    <Input
+                      id="likes-count"
+                      type="number"
+                      min="0"
+                      max="999999"
+                      value={customLikesCount}
+                      onChange={(e) => setCustomLikesCount(parseInt(e.target.value) || 0)}
+                      className="w-24 text-center"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  {/* Compartilhamentos */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 flex-1">
+                      <Send className="w-4 h-4 text-blue-500" />
+                      <Label htmlFor="shares-count" className="text-sm">Compartilhamentos</Label>
+                    </div>
+                    <Input
+                      id="shares-count"
+                      type="number"
+                      min="0"
+                      max="999999"
+                      value={customSharesCount}
+                      onChange={(e) => setCustomSharesCount(parseInt(e.target.value) || 0)}
+                      className="w-24 text-center"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  {/* Comentários */}
+                  <div className="space-y-2 pt-2 border-t">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4 text-green-500" />
+                        <Label className="text-sm">Comentários</Label>
+                        {initialItem?.id && commentsData && (
+                          <span className="text-xs text-muted-foreground">
+                            ({commentsData.total} {commentsData.total === 1 ? 'comentário' : 'comentários'})
+                          </span>
+                        )}
+                      </div>
+                      {initialItem?.id && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShowAddCommentModal(true)}
+                          className="gap-2"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Adicionar
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {!initialItem?.id && (
+                      <p className="text-xs text-muted-foreground italic">
+                        Salve o produto primeiro para adicionar comentários
+                      </p>
+                    )}
+
+                    {/* Lista de comentários */}
+                    {initialItem?.id && commentsData?.comments && commentsData.comments.length > 0 && (
+                      <div className="space-y-2 mt-2">
+                        {commentsData.comments.slice(0, 3).map((comment: any) => (
+                          <div key={comment.id} className="flex gap-2 items-start p-2 bg-white rounded-md text-xs group hover:bg-gray-50 transition-colors relative">
+                            {comment.is_highlighted && (
+                              <div className="absolute -top-1 -left-1">
+                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                              </div>
+                            )}
+                            <img 
+                              src={comment.author_avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author_name)}&size=32`} 
+                              alt={comment.author_name}
+                              className="w-6 h-6 rounded-full flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold truncate">{comment.author_name}</div>
+                              <div className="text-muted-foreground line-clamp-2">{comment.comment_text}</div>
+                            </div>
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6"
+                                onClick={() => {
+                                  toggleHighlight.mutate({
+                                    commentId: comment.id,
+                                    galleryItemId: initialItem.id
+                                  });
+                                }}
+                                title={comment.is_highlighted ? "Remover destaque" : "Destacar comentário"}
+                              >
+                                <Star className={`w-3 h-3 ${comment.is_highlighted ? 'text-yellow-500 fill-yellow-500' : 'text-gray-400'}`} />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6"
+                                onClick={() => {
+                                  setEditingComment(comment);
+                                  setShowEditCommentModal(true);
+                                }}
+                                title="Editar comentário"
+                              >
+                                <Pencil className="w-3 h-3 text-blue-500" />
+                              </Button>
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                className="h-6 w-6"
+                                onClick={() => setCommentToDelete(comment.id)}
+                                title="Excluir comentário"
+                              >
+                                <Trash2 className="w-3 h-3 text-red-500" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                        {commentsData.total > 3 && (
+                          <p className="text-xs text-center text-muted-foreground">
+                            +{commentsData.total - 3} comentário(s) a mais
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              )}
+            </div>
+
+            {/* Modal de Adicionar Comentário */}
+            {initialItem?.id && (
+              <AddCommentModal
+                open={showAddCommentModal}
+                onClose={() => setShowAddCommentModal(false)}
+                galleryItemId={initialItem.id}
+                onCommentAdded={() => {
+                  // Invalidar cache para forçar refetch
+                  queryClient.invalidateQueries({ 
+                    queryKey: ['gallery-comments', initialItem.id] 
+                  });
+                  // Refetch adicional para garantir
+                  refetchComments();
+                  toast({
+                    title: "Comentário adicionado!",
+                    description: "O comentário foi salvo com sucesso.",
+                  });
+                }}
+              />
+            )}
+
+            {/* Modal de Editar Comentário */}
+            {initialItem?.id && editingComment && (
+              <EditCommentModal
+                open={showEditCommentModal}
+                onClose={() => {
+                  setShowEditCommentModal(false);
+                  setEditingComment(null);
+                }}
+                comment={editingComment}
+                galleryItemId={initialItem.id}
+                onCommentUpdated={() => {
+                  queryClient.invalidateQueries({ 
+                    queryKey: ['gallery-comments', initialItem.id] 
+                  });
+                  refetchComments();
+                }}
+              />
+            )}
+
+            {/* Dialog de Confirmação de Exclusão */}
+            <AlertDialog open={!!commentToDelete} onOpenChange={(open) => !open && setCommentToDelete(null)}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir comentário?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação não pode ser desfeita. O comentário será permanentemente removido.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-red-500 hover:bg-red-600"
+                    onClick={async () => {
+                      if (commentToDelete && initialItem?.id) {
+                        try {
+                          await deleteComment.mutateAsync({
+                            commentId: commentToDelete,
+                            galleryItemId: initialItem.id
+                          });
+                          toast({
+                            title: "Comentário excluído!",
+                            description: "O comentário foi removido com sucesso.",
+                          });
+                          setCommentToDelete(null);
+                        } catch (error) {
+                          toast({
+                            title: "Erro ao excluir",
+                            description: "Não foi possível excluir o comentário.",
+                            variant: "destructive"
+                          });
+                        }
+                      }
+                    }}
+                  >
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
             {/* Imagem */}
             <div>

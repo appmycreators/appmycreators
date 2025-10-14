@@ -542,6 +542,9 @@ export interface GalleryItem {
   display_order: number;
   destaque: boolean;
   lottie_animation: string | null;
+  enable_social_proof?: boolean;
+  custom_likes_count?: number;
+  custom_shares_count?: number;
 }
 
 export const GalleryService = {

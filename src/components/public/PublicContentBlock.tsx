@@ -1,9 +1,12 @@
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ShoppingCart, Loader2, MoreVertical } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ShoppingCart, Loader2, MoreVertical, Heart, Send, MessageCircle, X } from "lucide-react";
 import ResponsiveImage from "@/components/ResponsiveImage";
 import { FormResource } from "@/components/FormResource";
 import LottieAnimation from "./LottieAnimation";
+import { useGalleryItemComments } from "@/hooks/useGalleryComments";
 
 /**
  * PublicContentBlock - Bloco de conteúdo na página pública
@@ -194,6 +197,35 @@ const PublicContentBlock = ({
       }).format(numPrice / 100); // Assumindo que o preço vem em centavos
     };
 
+    // Estado para controlar o modal de comentários
+    const [showComments, setShowComments] = useState(false);
+
+    // OTIMIZAÇÃO: Só buscar comentários se prova social estiver ativada
+    const shouldFetchComments = item.enableSocialProof === true;
+    
+    // Hook para buscar comentários reais (apenas se necessário)
+    const { data: commentsData } = useGalleryItemComments(
+      shouldFetchComments ? (item.id || null) : null
+    );
+
+    // Determinar números de prova social
+    const stats = React.useMemo(() => {
+      // Se prova social não está ativa, não exibir
+      if (!item.enableSocialProof) {
+        return { likes: 0, shares: 0, comments: 0, enabled: false };
+      }
+
+      // Usar números customizados se fornecidos
+      return {
+        likes: item.customLikesCount || 0,
+        shares: item.customSharesCount || 0,
+        comments: commentsData?.total || 0,
+        enabled: true
+      };
+    }, [item.enableSocialProof, item.customLikesCount, item.customSharesCount, commentsData?.total]);
+
+    const comments = commentsData?.comments || [];
+
     return (
       <div 
         className="overflow-hidden rounded-2xl shadow-sm"
@@ -225,6 +257,41 @@ const PublicContentBlock = ({
               widths={[320, 480, 640]}
               sizes="(min-width: 640px) 302px, 75vw"
             />
+            
+            {/* Elementos de interação social - canto inferior direito */}
+            {stats.enabled && (
+              <div className="absolute bottom-2 right-2 flex flex-col gap-1 z-10">
+                {/* Curtidas */}
+                {stats.likes > 0 && (
+                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
+                    <Heart className="w-3 h-3 text-white fill-red-500 text-red-500" />
+                    <span className="text-[10px] text-white font-medium">{stats.likes}</span>
+                  </div>
+                )}
+                
+                {/* Compartilhamentos */}
+                {stats.shares > 0 && (
+                  <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1">
+                    <Send className="w-3 h-3 text-white" />
+                    <span className="text-[10px] text-white font-medium">{stats.shares}</span>
+                  </div>
+                )}
+                
+                {/* Comentários */}
+                {stats.comments > 0 && (
+                  <div 
+                    className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 cursor-pointer hover:bg-black/70 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowComments(true);
+                    }}
+                  >
+                    <MessageCircle className="w-3 h-3 text-white" />
+                    <span className="text-[10px] text-white font-medium">{stats.comments}</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="px-3 pt-2 pb-3">
@@ -276,6 +343,58 @@ const PublicContentBlock = ({
             </div>
           )}
         </div>
+
+        {/* Modal de Comentários */}
+        <Dialog open={showComments} onOpenChange={setShowComments}>
+          <DialogContent className="max-w-lg max-h-[80vh] p-0 overflow-hidden">
+            <DialogHeader className="p-6 pb-4 border-b">
+              <DialogTitle className="text-lg font-semibold flex items-center gap-2">
+                <MessageCircle className="w-5 h-5" />
+                Comentários ({stats.comments})
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="overflow-y-auto max-h-[60vh] p-6 space-y-4">
+              {comments.length > 0 ? (
+                comments.map((comment, index) => (
+                  <div key={comment.id || index} className="flex gap-3 pb-4 border-b last:border-b-0">
+                    <img 
+                      src={comment.author_avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.author_name)}&size=40`} 
+                      alt={comment.author_name}
+                      className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-sm">{comment.author_name}</span>
+                        <span className="text-xs text-muted-foreground">{comment.time_ago}</span>
+                        {comment.is_highlighted && (
+                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                            ⭐ Destaque
+                          </span>
+                        )}
+                      </div>
+                      {comment.rating && (
+                        <div className="flex gap-0.5 mb-1">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <span key={i} className={i < comment.rating! ? 'text-yellow-400 text-xs' : 'text-gray-300 text-xs'}>
+                              ★
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-sm text-foreground leading-relaxed">{comment.comment_text}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                  <p>Nenhum comentário ainda.</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }

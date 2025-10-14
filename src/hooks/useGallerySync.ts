@@ -20,6 +20,9 @@ export interface GalleryItem {
   destaque?: boolean;
   lottieAnimation?: string;
   displayOrder?: number;
+  enableSocialProof?: boolean;
+  customLikesCount?: number;
+  customSharesCount?: number;
 }
 
 export interface Gallery {
@@ -80,6 +83,9 @@ export const useGallerySync = (): UseGallerySyncReturn => {
             destaque: item.destaque || false,
             lottieAnimation: item.lottie_animation || undefined,
             displayOrder: item.display_order ?? undefined,
+            enableSocialProof: item.enable_social_proof || false,
+            customLikesCount: item.custom_likes_count || 0,
+            customSharesCount: item.custom_shares_count || 0,
           }));
 
           const existing = prevMap.get(resource.id);
@@ -240,6 +246,9 @@ export const useGallerySync = (): UseGallerySyncReturn => {
           display_order: targetGallery.items.length,
           destaque: item.destaque || false,
           lottie_animation: item.lottieAnimation || null,
+          enable_social_proof: item.enableSocialProof || false,
+          custom_likes_count: item.customLikesCount || 0,
+          custom_shares_count: item.customSharesCount || 0,
         });
 
         if (!newItem) {
@@ -263,6 +272,9 @@ export const useGallerySync = (): UseGallerySyncReturn => {
                       imageUrl,
                       destaque: item.destaque,
                       lottieAnimation: item.lottieAnimation,
+                      enableSocialProof: item.enableSocialProof,
+                      customLikesCount: item.customLikesCount,
+                      customSharesCount: item.customSharesCount,
                       displayOrder: targetGallery.items.length,
                     },
                   ],
@@ -328,6 +340,9 @@ export const useGallerySync = (): UseGallerySyncReturn => {
           destaque: item.destaque !== undefined ? item.destaque : false,
           display_order: currentDisplayOrder, // Preservar ordem original
           lottie_animation: item.lottieAnimation || null,
+          enable_social_proof: item.enableSocialProof !== undefined ? item.enableSocialProof : false,
+          custom_likes_count: item.customLikesCount || 0,
+          custom_shares_count: item.customSharesCount || 0,
         };
         
         await GalleryItemService.updateGalleryItem(itemId, updateData);
