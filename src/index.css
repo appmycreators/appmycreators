@@ -252,23 +252,24 @@ All colors MUST be HSL.
     position: relative;
     overflow: visible;
     border-radius: 9999px;
+    --neon-color: #3b82f6;
     box-shadow:
       0 0 6px rgba(255, 255, 255, 0.3),
       0 0 12px rgba(255, 255, 255, 0.35),
-      0 0 22px rgba(59, 130, 246, 0.6);
+      0 0 22px color-mix(in srgb, var(--neon-color) 60%, transparent);
     animation: badgeBounce 2.2s ease-in-out infinite;
   }
- 
+
   .neon-highlight-badge::before {
     content: "";
     position: absolute;
     inset: -1px;
     border-radius: inherit;
-    border: 2px solid rgba(147, 197, 253, 0.95);
+    border: 2px solid color-mix(in srgb, var(--neon-color) 95%, white);
     box-shadow:
-      0 0 6px rgba(125, 211, 252, 0.8),
-      0 0 14px rgba(59, 130, 246, 0.75),
-      inset 0 0 6px rgba(191, 219, 254, 0.6);
+      0 0 6px color-mix(in srgb, var(--neon-color) 80%, white),
+      0 0 14px color-mix(in srgb, var(--neon-color) 75%, transparent),
+      inset 0 0 6px color-mix(in srgb, var(--neon-color) 60%, white);
     opacity: 0.95;
     pointer-events: none;
     animation: neonBorderPulse 1.4s ease-in-out infinite;
@@ -279,7 +280,7 @@ All colors MUST be HSL.
     position: absolute;
     inset: -4px;
     border-radius: inherit;
-    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.8), rgba(59, 130, 246, 0));
+    background: radial-gradient(circle at center, color-mix(in srgb, var(--neon-color) 80%, transparent), transparent);
     opacity: 0.75;
     filter: blur(8px);
     z-index: -1;
@@ -304,17 +305,17 @@ All colors MUST be HSL.
       opacity: 0.75;
       transform: scale(0.98);
       box-shadow:
-        0 0 5px rgba(125, 211, 252, 0.6),
-        0 0 10px rgba(59, 130, 246, 0.55),
-        inset 0 0 4px rgba(191, 219, 254, 0.4);
+        0 0 5px color-mix(in srgb, var(--neon-color) 60%, white),
+        0 0 10px color-mix(in srgb, var(--neon-color) 55%, transparent),
+        inset 0 0 4px color-mix(in srgb, var(--neon-color) 40%, white);
     }
     50% {
       opacity: 1;
       transform: scale(1.02);
       box-shadow:
-        0 0 8px rgba(125, 211, 252, 0.9),
-        0 0 18px rgba(59, 130, 246, 0.85),
-        inset 0 0 6px rgba(191, 219, 254, 0.6);
+        0 0 8px color-mix(in srgb, var(--neon-color) 90%, white),
+        0 0 18px color-mix(in srgb, var(--neon-color) 85%, transparent),
+        inset 0 0 6px color-mix(in srgb, var(--neon-color) 60%, white);
     }
   }
 

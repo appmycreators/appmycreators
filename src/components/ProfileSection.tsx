@@ -85,8 +85,8 @@ const ProfileSection = ({ title = "Minha galeria", items, onAdd, onEdit, onRenam
                         style={{
                           backgroundColor: highlightBgColor || '#fbbf24',
                           color: highlightTextColor || '#000000',
-                          boxShadow: '0 0 12px rgba(59, 130, 246, 0.45)',
-                        }}
+                          '--neon-color': highlightBgColor || '#fbbf24',
+                        } as React.CSSProperties & { '--neon-color': string }}
                       >
                         DESTAQUE
                       </div>
