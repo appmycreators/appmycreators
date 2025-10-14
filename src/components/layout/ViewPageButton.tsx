@@ -8,19 +8,19 @@ import eyeIcon from "@/assets/ui/eye.svg";
  */
 
 interface ViewPageButtonProps {
-  username: string;
+  slug: string;
 }
 
-const ViewPageButton = ({ username }: ViewPageButtonProps) => {
+const ViewPageButton = ({ slug }: ViewPageButtonProps) => {
   const { toast } = useToast();
 
   const handleClick = () => {
-    if (username) {
-      window.open(`https://mycreators.me/${username}`, '_blank');
+    if (slug) {
+      window.open(`https://mycreators.me/${slug}`, '_blank');
     } else {
       toast({
         title: "Aguarde...",
-        description: "Carregando suas informações.",
+        description: "Carregando informações da página.",
       });
     }
   };

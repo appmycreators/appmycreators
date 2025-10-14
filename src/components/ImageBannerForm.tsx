@@ -11,9 +11,9 @@ import imageSectionIcon from "@/assets/ui/image_section_icon.svg";
 interface ImageBannerFormProps {
   open: boolean;
   onClose: () => void;
-  onAddImageBanner: (banner: { title: string; imageUrl: string; linkUrl?: string }) => void;
-  onUpdateImageBanner: (id: string, banner: { title: string; imageUrl: string; linkUrl?: string }) => void;
-  initialBanner?: { id?: string; title: string; imageUrl: string; linkUrl?: string };
+  onAddImageBanner: (banner: { title: string; imageUrl: string; linkUrl?: string; textColor?: string; bgColor?: string; visibleTitle?: boolean }) => void;
+  onUpdateImageBanner: (id: string, banner: { title: string; imageUrl: string; linkUrl?: string; textColor?: string; bgColor?: string; visibleTitle?: boolean }) => void;
+  initialBanner?: { id?: string; title: string; imageUrl: string; linkUrl?: string; textColor?: string; bgColor?: string; visibleTitle?: boolean };
 }
 
 const MAX_SIZE = 20 * 1024 * 1024; // 20MB
@@ -36,6 +36,9 @@ const ImageBannerForm = ({ open, onClose, onAddImageBanner, onUpdateImageBanner,
   const [imageDataUrl, setImageDataUrl] = useState<string | undefined>(undefined);
   const [enableLink, setEnableLink] = useState(true);
   const [url, setUrl] = useState("");
+  const [textColor, setTextColor] = useState("#FFFFFF");
+  const [bgColor, setBgColor] = useState("#282c34");
+  const [visibleTitle, setVisibleTitle] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -44,6 +47,9 @@ const ImageBannerForm = ({ open, onClose, onAddImageBanner, onUpdateImageBanner,
       setImageDataUrl(initialBanner?.imageUrl);
       setUrl(initialBanner?.linkUrl || "");
       setEnableLink(Boolean(initialBanner?.linkUrl));
+      setTextColor(initialBanner?.textColor || "#FFFFFF");
+      setBgColor(initialBanner?.bgColor || "#282c34");
+      setVisibleTitle(initialBanner?.visibleTitle !== false);
     }
   }, [open, initialBanner]);
 
@@ -87,6 +93,9 @@ const ImageBannerForm = ({ open, onClose, onAddImageBanner, onUpdateImageBanner,
       title: title.trim() || "Imagem ou Banner",
       imageUrl: imageDataUrl,
       linkUrl: enableLink ? url.trim() : undefined,
+      textColor: textColor,
+      bgColor: bgColor,
+      visibleTitle: visibleTitle,
     };
 
     if (initialBanner?.id) {
@@ -122,6 +131,52 @@ const ImageBannerForm = ({ open, onClose, onAddImageBanner, onUpdateImageBanner,
                 onChange={(e) => setTitle(e.target.value)}
                 className="h-12 rounded-xl"
               />
+            </div>
+
+            {/* Cor do Texto */}
+            <div>
+              <Label className="mb-2 block">Cor do texto</Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="color"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  className="h-12 w-20 rounded-xl cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  placeholder="#FFFFFF"
+                  className="h-12 flex-1 rounded-xl font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Cor de Fundo */}
+            <div>
+              <Label className="mb-2 block">Cor de fundo</Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="color"
+                  value={bgColor}
+                  onChange={(e) => setBgColor(e.target.value)}
+                  className="h-12 w-20 rounded-xl cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={bgColor}
+                  onChange={(e) => setBgColor(e.target.value)}
+                  placeholder="#FFFFFF"
+                  className="h-12 flex-1 rounded-xl font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Toggle Mostrar Título */}
+            <div className="flex items-center gap-2">
+              <Switch checked={visibleTitle} onCheckedChange={(v) => setVisibleTitle(Boolean(v))} className="data-[state=checked]:bg-primary" />
+              <span className="text-sm">Mostrar título</span>
             </div>
 
             {/* Upload */}

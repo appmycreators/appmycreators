@@ -89,7 +89,7 @@ const PublicContentList = ({
           const isCollapsed = collapsedGalleries.has(item.id);
           
           return (
-            <div key={item.id} className="pt-2">
+            <div key={item.id}>
               {/* Gallery Container com fundo */}
               <div 
                 className="relative mt-3 pt-4 pb-4 rounded-2xl"

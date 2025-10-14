@@ -7,24 +7,24 @@ interface ShareModalProps {
   open: boolean;
   onClose: () => void;
   /**
-   * Username for the public page URL (/{username})
+   * Page slug for the public page URL (/{slug})
    */
-  username?: string;
+  slug?: string;
   /**
    * Optional full URL override
    */
   url?: string;
 }
 
-const ShareModal = ({ open, onClose, username, url }: ShareModalProps) => {
+const ShareModal = ({ open, onClose, slug, url }: ShareModalProps) => {
   const { toast } = useToast();
 
   const shareUrl = useMemo(() => {
     if (url) return url;
-    if (username) return `https://mycreators.me/${username}`;
+    if (slug) return `https://mycreators.me/${slug}`;
     if (typeof window !== "undefined") return `${window.location.origin}/preview`;
     return "/preview";
-  }, [url, username]);
+  }, [url, slug]);
 
   const qrImgUrl = useMemo(() => {
     const data = encodeURIComponent(shareUrl);

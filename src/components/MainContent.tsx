@@ -33,7 +33,7 @@ import DraggableContentList from "./content/DraggableContentList";
 const MainContent = () => {
   // Hooks principais
   const { pageData, loading: pageLoading } = usePage();
-  const [username, setUsername] = useState<string>('');
+  const [slug, setSlug] = useState<string>('');
   const { links, loading: linksLoading } = usePageSync();
   const { galleries, toggleCollapse, loading: galleriesLoading } = useGallerySync();
   const { imageBanners, loading: imageBannersLoading } = useImageBannerSync();
@@ -95,15 +95,11 @@ const MainContent = () => {
   useBlocksOrder(galleries, links, imageBanners, setBlocksOrder);
   
   useEffect(() => {
-    if (pageData.username) {
-      setUsername(pageData.username);
-      return;
+    // Usar o slug da página atual ao invés do username
+    if (pageData.page?.slug) {
+      setSlug(pageData.page.slug);
     }
-
-    if (pageData.page?.user_id) {
-      setUsername(pageData.page.user_id.slice(0, 6));
-    }
-  }, [pageData.username, pageData.page?.user_id]);
+  }, [pageData.page?.slug]);
 
   const { backgroundColor, cardBgColor, cardTextColor, loading: settingsLoading } = usePageSettings();
   const { galleryHighlightBgColor, galleryHighlightTextColor } = useGalleryColors();
@@ -166,7 +162,7 @@ const MainContent = () => {
         <CreateNewPageButton backgroundColor={backgroundColor} />
 
         {/* View Page Button */}
-        <ViewPageButton username={username} />
+        <ViewPageButton slug={slug} />
       </div>
     </div>
 

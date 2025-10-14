@@ -7,11 +7,14 @@ interface ImageBannerCardProps {
   title: string;
   image: string; // data URL (base64) or http(s) URL
   url?: string; // optional click-through link
+  textColor?: string; // cor do texto (opcional)
+  bgColor?: string; // cor de fundo (opcional)
+  visibleTitle?: boolean; // mostrar/esconder título
   onEdit?: () => void;
   onDelete?: () => void;
 }
 
-const ImageBannerCard = ({ title, image, url, onEdit, onDelete }: ImageBannerCardProps) => {
+const ImageBannerCard = ({ title, image, url, textColor, bgColor, visibleTitle = true, onEdit, onDelete }: ImageBannerCardProps) => {
   const imgEl = (
     <div className="relative w-full overflow-hidden rounded-xl">
       <img src={image} alt={title || "Imagem"} className="w-full h-auto object-cover" />
@@ -38,16 +41,24 @@ const ImageBannerCard = ({ title, image, url, onEdit, onDelete }: ImageBannerCar
           )}
         </div>
       </div>
+      {title && visibleTitle && (
+        <div 
+          className="mb-2 px-3 py-2 rounded-lg text-sm text-center font-medium" 
+          style={{ 
+            color: textColor || '#FFFFFF',
+            backgroundColor: bgColor || 'transparent'
+          }}
+        >
+          {title}
+        </div>
+      )}
+
       {url ? (
         <a href={url} target="_blank" rel="noreferrer noopener">
           {imgEl}
         </a>
       ) : (
         imgEl
-      )}
-
-      {title && (
-        <div className="mt-2 text-sm text-foreground">{title}</div>
       )}
     </Card>
   );

@@ -91,44 +91,43 @@ const PublicContentBlock = ({
     );
   }
   
+  // Spotify Block
+  if (item.type === 'spotify' || (item.type === 'link' && item.url?.includes('open.spotify.com'))) {
+    return (
+      <div className="w-full">
+        <iframe
+          src={`https://open.spotify.com/embed${new URL(normalizeSpotifyUrl(item.url)).pathname}`}
+          width="100%"
+          height="152"
+          frameBorder="0"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"
+          className="rounded-xl"
+        />
+      </div>
+    );
+  }
+
+  // YouTube Block
+  if (item.type === 'youtube' || (item.type === 'link' && (item.url?.includes('youtube.com') || item.url?.includes('youtu.be')))) {
+    return (
+      <div className="w-full aspect-video">
+        <iframe
+          src={normalizeYouTubeUrl(item.url)}
+          width="100%"
+          height="100%"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          loading="lazy"
+          className="rounded-xl"
+        />
+      </div>
+    );
+  }
+  
   // Link Block
   if (item.type === 'link') {
-    const isSpotify = item.url?.includes('open.spotify.com');
-    const isYouTube = item.url?.includes('youtube.com') || item.url?.includes('youtu.be');
-    
-    if (isSpotify) {
-      return (
-        <div className="w-full">
-          <iframe
-            src={`https://open.spotify.com/embed${new URL(normalizeSpotifyUrl(item.url)).pathname}`}
-            width="100%"
-            height="152"
-            frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            className="rounded-xl"
-          />
-        </div>
-      );
-    }
-    
-    if (isYouTube) {
-      return (
-        <div className="w-full aspect-video">
-          <iframe
-            src={normalizeYouTubeUrl(item.url)}
-            width="100%"
-            height="100%"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            loading="lazy"
-            className="rounded-xl"
-          />
-        </div>
-      );
-    }
-    
     // Link padrão (incluindo WhatsApp e outros)
     const bgColor = item.bgColor || cardBgColor || '#171717';
     const textColor = cardTextColor || '#ffffff';
@@ -181,6 +180,19 @@ const PublicContentBlock = ({
 
     return (
       <div className="w-full rounded-xl overflow-hidden shadow-md">
+        {item.title && item.visibleTitle !== false && (
+          <div 
+            className="px-4 py-2 text-center" 
+            style={{ 
+              backgroundColor: item.bgColor || '#ffffff',
+              color: item.textColor || '#FFFFFF'
+            }}
+          >
+            <p className="text-sm font-medium">
+              {item.title}
+            </p>
+          </div>
+        )}
         {item.url ? (
           <a 
             href={item.url} 
@@ -193,13 +205,6 @@ const PublicContentBlock = ({
         ) : (
           <div className="transition-all hover:scale-[1.02]">
             {imageContent}
-          </div>
-        )}
-        {item.title && (
-          <div className="px-4 py-2 bg-white">
-            <p className="text-sm" style={{ color: cardTextColor || '#1f2937' }}>
-              {item.title}
-            </p>
           </div>
         )}
       </div>

@@ -56,6 +56,9 @@ const DragPreview = ({ activeId, parseId, cardBgColor, cardTextColor }: DragPrev
           title={banner.title}
           image={banner.imageUrl}
           url={banner.linkUrl}
+          textColor={banner.textColor}
+          bgColor={banner.bgColor}
+          visibleTitle={banner.visibleTitle}
         />
       </div>
     );

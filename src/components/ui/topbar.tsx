@@ -1,46 +1,58 @@
-import { useState, useEffect } from "react";
-import { Share, Menu, Home, Edit, Palette, BarChart3, Plus, Eye, Settings } from "lucide-react";
+import { useState } from "react";
+import { Share, Menu, Home, Palette, BarChart3, Plus, Settings, FileText, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import ShareModal from "@/components/ShareModal";
+import AddPageModal from "@/components/modals/AddPageModal";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { usePage } from "@/hooks/usePage";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Topbar = () => {
   const [shareOpen, setShareOpen] = useState(false);
-  const [username, setUsername] = useState<string>('');
+  const [addPageOpen, setAddPageOpen] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Carregar username do usuário
-  useEffect(() => {
-    const loadUsername = async () => {
-      if (user?.id) {
-        const { data } = await supabase
-          .from('usernames')
-          .select('username')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (data?.username) {
-          setUsername(data.username);
-        }
-      }
-    };
-    
-    loadUsername();
-  }, [user?.id]);
+  // Pegar o slug da página atual (requer PageProvider)
+  const { pageData } = usePage();
+  const slug = pageData.page?.slug || '';
   const menuItems = [
-    { icon: Home, label: "Início", active: true },
-    { icon: Edit, label: "Editar página" },
-    { icon: Palette, label: "Customizar" },
-    { icon: BarChart3, label: "Analytics" },
+    { icon: Home, label: "Início", path: "/" },
+    { icon: Palette, label: "Customizar", path: "/pages" },
+    { icon: FileText, label: "Leads", path: "/leads" },
+    { icon: BarChart3, label: "Analytics", path: "/analytics" },
     { icon: Plus, label: "Adicionar página", badge: "Pro" },
-    { icon: Eye, label: "Ver minha página" },
     { icon: Settings, label: "Ajustes" },
   ];
+  
+  // Verifica se está na rota "/editor" (MainContent/Editor)
+  const isEditorPage = location.pathname === "/editor";
+  const isMyPagesPage = location.pathname === "/pages";
+  
+  // Handler quando uma página é criada com sucesso
+  const handlePageCreated = () => {
+    // Recarrega a página atual para mostrar a nova página na lista
+    window.location.reload();
+  };
+  
   return (
     <div className="flex items-center justify-between px-4 sm:px-6 bg-white border-b border-border h-14 sm:h-[81px]">
+      {/* Back Button - Apenas no Editor */}
+      {isEditorPage && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-2 text-muted-foreground hover:text-[#00c6a9] hover:bg-[#00c6a9]/10 transition-colors"
+          onClick={() => navigate("/pages")}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Minhas Páginas</span>
+        </Button>
+      )}
+
       {/* Mobile menu trigger */}
       <div className="md:hidden">
         <Sheet>
@@ -61,19 +73,33 @@ const Topbar = () => {
               </div>
               <div className="flex-1 overflow-auto p-2">
                 <div className="space-y-1">
-                  {menuItems.map((item, idx) => (
-                    <Button
-                      key={idx}
-                      variant={item.active ? "secondary" : "ghost"}
-                      className="w-full justify-start gap-3 h-11"
-                    >
-                      <item.icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
-                      {item.badge && (
-                        <span className="ml-auto bg-primary text-primary-foreground px-2 py-0.5 text-xs rounded-full">{item.badge}</span>
-                      )}
-                    </Button>
-                  ))}
+                  {menuItems.map((item, idx) => {
+                    // "Customizar" fica ativo tanto em "/editor" quanto em "/pages"
+                    const isActive = item.path 
+                      ? (item.path === "/pages" 
+                          ? (location.pathname === "/editor" || location.pathname === "/pages")
+                          : location.pathname === item.path)
+                      : false;
+                    
+                    // Itens sem path não devem navegar
+                    const shouldNavigate = Boolean(item.path);
+                    
+                    return (
+                      <Button
+                        key={idx}
+                        variant={isActive ? "secondary" : "ghost"}
+                        className="w-full justify-start gap-3 h-11"
+                        onClick={() => shouldNavigate && navigate(item.path!)}
+                        disabled={!shouldNavigate && !item.badge}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        <span className="font-medium">{item.label}</span>
+                        {item.badge && (
+                          <span className="ml-auto bg-primary text-primary-foreground px-2 py-0.5 text-xs rounded-full">{item.badge}</span>
+                        )}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
               <Separator />
@@ -89,17 +115,38 @@ const Topbar = () => {
 
       {/* Right actions */}
       <div className="flex items-center gap-2 ml-auto">
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 hover:bg-primary hover:text-primary-foreground"
-          onClick={() => setShareOpen(true)}
-        >
-          <Share className="w-4 h-4" />
-          Compartilhar
-        </Button>
+        {isMyPagesPage && (
+          <Button
+            size="sm"
+            className="gap-2 bg-gradient-to-r from-[#00c6a9] to-[#03816e] hover:opacity-90 text-white"
+            onClick={() => setAddPageOpen(true)}
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Adicionar Página</span>
+          </Button>
+        )}
+        {isEditorPage && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 hover:bg-[#00c6a9] hover:text-white hover:border-[#00c6a9] transition-colors"
+            onClick={() => setShareOpen(true)}
+          >
+            <Share className="w-4 h-4" />
+            Compartilhar
+          </Button>
+        )}
       </div>
-      <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} username={username} />
+      
+      {/* Modals */}
+      {isEditorPage && (
+        <ShareModal open={shareOpen} onClose={() => setShareOpen(false)} slug={slug} />
+      )}
+      <AddPageModal 
+        open={addPageOpen} 
+        onClose={() => setAddPageOpen(false)} 
+        onSuccess={handlePageCreated}
+      />
     </div>
   );
 };

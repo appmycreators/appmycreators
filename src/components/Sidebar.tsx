@@ -1,11 +1,9 @@
 import { 
   Home, 
-  Edit, 
   Palette, 
   DollarSign, 
   BarChart3, 
   Plus, 
-  Eye,
   Settings,
   LogOut,
   User,
@@ -32,12 +30,10 @@ const Sidebar = () => {
   const { toast } = useToast();
   const menuItems = [
     { icon: Home, label: "Início", path: "/" },
-    { icon: Edit, label: "Editar página" },
-    { icon: Palette, label: "Customizar" },
+    { icon: Palette, label: "Customizar", path: "/pages" },
     { icon: FileText, label: "Leads", path: "/leads" },
     { icon: BarChart3, label: "Analytics", path: "/analytics" },
     { icon: Plus, label: "Adicionar página", badge: "Pro" },
-    { icon: Eye, label: "Ver uma página" },
     { icon: Settings, label: "Ajustes" },
   ];
   const [collapsed, setCollapsed] = useState(false);
@@ -125,14 +121,24 @@ const Sidebar = () => {
       {/* Menu Items */}
       <div className={`flex-1 p-4 space-y-1 ${collapsed ? "px-2" : ""}`}>
         {menuItems.map((item, index) => {
-          const isActive = item.path && location.pathname === item.path;
+          // "Customizar" fica ativo tanto em "/editor" quanto em "/pages"
+          const isActive = item.path 
+            ? (item.path === "/pages" 
+                ? (location.pathname === "/editor" || location.pathname === "/pages")
+                : location.pathname === item.path)
+            : false;
+          
+          // Itens sem path não devem navegar
+          const shouldNavigate = Boolean(item.path);
+          
           return (
             <div key={index} className="relative">
               <Button
                 variant={isActive ? "secondary" : "ghost"}
                 className={`w-full ${collapsed ? "justify-center" : "justify-start"} gap-3 h-12 text-left hover:bg-[#00c6a9] hover:text-white transition-colors`}
                 title={collapsed ? item.label : undefined}
-                onClick={() => item.path && navigate(item.path)}
+                onClick={() => shouldNavigate && navigate(item.path!)}
+                disabled={!shouldNavigate && !item.badge}
               >
                 <item.icon className="w-5 h-5" />
                 {!collapsed && <span className="font-medium">{item.label}</span>}

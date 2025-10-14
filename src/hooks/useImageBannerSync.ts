@@ -9,6 +9,9 @@ interface ImageBanner {
   title: string;
   imageUrl: string;
   linkUrl?: string;
+  textColor?: string;
+  bgColor?: string;
+  visibleTitle?: boolean;
 }
 
 interface UseImageBannerSyncReturn {
@@ -36,6 +39,9 @@ export const useImageBannerSync = (): UseImageBannerSyncReturn => {
         title: r.title,
         imageUrl: r.image_banner_data.image_url,
         linkUrl: r.image_banner_data.link_url || undefined,
+        textColor: r.image_banner_data.color_text || undefined,
+        bgColor: r.image_banner_data.color_bg || undefined,
+        visibleTitle: r.image_banner_data.visible_title !== false,
       }));
 
     setImageBanners(processedBanners);
@@ -64,6 +70,9 @@ export const useImageBannerSync = (): UseImageBannerSyncReturn => {
           image_url: bannerData.imageUrl,
           link_url: bannerData.linkUrl || null,
           alt_text: bannerData.title || null,
+          color_text: bannerData.textColor || null,
+          color_bg: bannerData.bgColor || null,
+          visible_title: bannerData.visibleTitle !== false,
         });
 
         if (!banner) {
@@ -101,6 +110,9 @@ export const useImageBannerSync = (): UseImageBannerSyncReturn => {
           image_url: data.imageUrl,
           link_url: data.linkUrl || null,
           alt_text: data.title || null,
+          color_text: data.textColor || null,
+          color_bg: data.bgColor || null,
+          visible_title: data.visibleTitle !== false,
         });
 
         setImageBanners((prev) => prev.map((b) => (b.id === id ? { ...b, ...data } : b)));

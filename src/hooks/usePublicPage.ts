@@ -13,9 +13,9 @@ interface PublicPageData {
   error: string | null;
 }
 
-export const usePublicPageOptimized = (username: string): PublicPageData => {
+export const usePublicPageOptimized = (slug: string): PublicPageData => {
   const initialSettings = useMemo(() => ({
-    profileName: username || '',
+    profileName: slug || '',
     bio: '',
     avatarUrl: '',
     avatarBorderColor: '#ffffff',
@@ -41,14 +41,14 @@ export const usePublicPageOptimized = (username: string): PublicPageData => {
     socialIconBgColor: null,
     socialIconColor: null,
     fontFamily: 'Poppins',
-  }), [username]);
+  }), [slug]);
 
   const query = useQuery({
-    queryKey: ['publicPage', username],
-    enabled: !!username,
+    queryKey: ['publicPage', slug],
+    enabled: !!slug,
     queryFn: async () => {
-      if (!username) throw new Error('Username não fornecido');
-      const { data: pageData, error } = await supabase.rpc('get_public_page_data', { p_username: username });
+      if (!slug) throw new Error('Slug não fornecido');
+      const { data: pageData, error } = await supabase.rpc('get_public_page_data_by_slug', { p_slug: slug });
       if (error) throw error;
       if (!pageData || (pageData as any).error) {
         const msg = (pageData as any)?.error || 'Página não encontrada';
@@ -80,11 +80,11 @@ export const usePublicPageOptimized = (username: string): PublicPageData => {
     return base;
   }
 
-  const processed = transformPageData(query.data, username);
+  const processed = transformPageData(query.data, slug);
   return { ...processed, loading: false, error: null };
 };
 
-function transformPageData(pageData: any, username: string) {
+function transformPageData(pageData: any, slug: string) {
   const resources: any[] = [];
   const galleries: any[] = [];
 
@@ -124,6 +124,9 @@ function transformPageData(pageData: any, username: string) {
         title: resource.title,
         url: resource.image_banner_data.link_url || '',
         image: resource.image_banner_data.image_url || undefined,
+        textColor: resource.image_banner_data.color_text || undefined,
+        bgColor: resource.image_banner_data.color_bg || undefined,
+        visibleTitle: resource.image_banner_data.visible_title !== false,
         hideUrl: true,
         displayOrder: resource.display_order,
       });
@@ -191,7 +194,7 @@ function transformPageData(pageData: any, username: string) {
     socials: socialsObj,
     socialsDisplayMode: socialsMode,
     settings: {
-      profileName: settings.profile_name || username,
+      profileName: settings.profile_name || slug,
       bio: settings.bio || '',
       avatarUrl: settings.avatar_url || '',
       avatarBorderColor: settings.avatar_border_color || '#ffffff',

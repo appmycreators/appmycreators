@@ -11,6 +11,7 @@ import { lazy, Suspense } from "react";
 
 // Route-level code splitting to reduce initial JS for public page
 const Index = lazy(() => import("./pages/Index"));
+const Home = lazy(() => import("./pages/Home"));
 const Preview = lazy(() => import("./pages/Preview"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const Login = lazy(() => import("./pages/Login"));
@@ -20,6 +21,7 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const EditHeader = lazy(() => import("./pages/EditHeader"));
 const Leads = lazy(() => import("./pages/Leads"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const MyPages = lazy(() => import("./pages/MyPages"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,6 +52,13 @@ const AnimatedRoutes = () => {
             <Route path="/" element={
               <ProtectedRoute>
                 <PageProvider>
+                  <Home />
+                </PageProvider>
+              </ProtectedRoute>
+            } />
+            <Route path="/editor" element={
+              <ProtectedRoute>
+                <PageProvider>
                   <Index />
                 </PageProvider>
               </ProtectedRoute>
@@ -75,10 +84,17 @@ const AnimatedRoutes = () => {
                 </PageProvider>
               </ProtectedRoute>
             } />
+            <Route path="/pages" element={
+              <ProtectedRoute>
+                <PageProvider>
+                  <MyPages />
+                </PageProvider>
+              </ProtectedRoute>
+            } />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             {/* Public profile - must be last before catch-all */}
-            <Route path="/:username" element={<PublicProfile />} />
+            <Route path="/:slug" element={<PublicProfile />} />
             <Route path="*" element={<NotFound />} />
         </Routes>
         </Suspense>

@@ -1,8 +1,14 @@
+-- ============================================
+-- ATUALIZAÇÃO: Corrigir get_dashboard_page_data
+-- ============================================
+-- Adiciona image_banner_data e whatsapp_data que estavam faltando
+-- ============================================
+
 CREATE OR REPLACE FUNCTION public.get_dashboard_page_data(p_user_id uuid)
- RETURNS json
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
 DECLARE
     v_page_id UUID;
     v_username TEXT;
@@ -51,6 +57,7 @@ BEGIN
         ),
         'resources', COALESCE((
             SELECT json_agg(
+                json_build_object(
                     'id', r.id,
                     'type', r.type,
                     'title', r.title,
@@ -69,6 +76,14 @@ BEGIN
                             SELECT row_to_json(ib.*)
                             FROM image_banners ib
                             WHERE ib.resource_id = r.id
+                        )
+                        ELSE NULL
+                    END,
+                    'whatsapp_data', CASE
+                        WHEN r.type = 'whatsapp' THEN (
+                            SELECT row_to_json(w.*)
+                            FROM whatsapp_links w
+                            WHERE w.resource_id = r.id
                         )
                         ELSE NULL
                     END,
@@ -109,5 +124,4 @@ BEGIN
     
     RETURN v_result;
 END;
-$function$
- |
+$$;

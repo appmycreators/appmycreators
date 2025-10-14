@@ -151,6 +151,23 @@ export const PageService = {
     return data;
   },
 
+  // Get all user's pages
+  async getUserPages(userId: string): Promise<Page[]> {
+    const { data, error } = await supabase
+      .from('pages')
+      .select('*')
+      .eq('user_id', userId)
+      .order('is_primary', { ascending: false })
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching user pages:', error);
+      return [];
+    }
+
+    return data || [];
+  },
+
   // Generate a unique slug based on baseSlug
   async generateUniqueSlug(baseSlug: string): Promise<string> {
     const normalizedBase = baseSlug
@@ -313,6 +330,33 @@ export const PageService = {
     }
 
     return true;
+  },
+
+  // Delete a page and all related data
+  async deletePage(pageId: string): Promise<boolean> {
+    try {
+      // Delete page (cascade will handle related data: settings, resources, social_links, etc)
+      const { error } = await supabase
+        .from('pages')
+        .delete()
+        .eq('id', pageId);
+
+      if (error) {
+        console.error('Error deleting page:', error);
+        return false;
+      }
+
+      // Delete usernames entries for this page
+      await supabase
+        .from('usernames')
+        .delete()
+        .eq('page_id', pageId);
+
+      return true;
+    } catch (error) {
+      console.error('Error in deletePage:', error);
+      return false;
+    }
   },
 };
 
@@ -741,6 +785,9 @@ export interface ImageBanner {
   image_url: string;
   link_url: string | null;
   alt_text: string | null;
+  color_text: string | null;
+  color_bg: string | null;
+  visible_title: boolean | null;
 }
 
 export const ImageBannerService = {
@@ -831,6 +878,26 @@ export const DashboardService = {
       return data as DashboardPageData;
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      return null;
+    }
+  },
+
+  async getDashboardDataByPageId(userId: string, pageId: string): Promise<DashboardPageData | null> {
+    try {
+      // Usar RPC otimizado para buscar todos os dados em uma única query
+      const { data, error } = await supabase.rpc('get_dashboard_page_data_by_page_id', {
+        p_user_id: userId,
+        p_page_id: pageId,
+      });
+
+      if (error) {
+        console.error('Error fetching dashboard data by page:', error);
+        return null;
+      }
+
+      return data as DashboardPageData;
+    } catch (error) {
+      console.error('Error fetching dashboard data by page:', error);
       return null;
     }
   },

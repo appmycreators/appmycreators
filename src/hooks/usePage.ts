@@ -1,6 +1,7 @@
 import { createContext, createElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSearchParams } from 'react-router-dom';
 import {
   DashboardService,
   PageSettingsService,
@@ -30,6 +31,7 @@ const PageContext = createContext<UsePageReturn | undefined>(undefined);
 
 const useProvidePage = (): UsePageReturn => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [pageData, setPageData] = useState<PageData>({
     page: null,
     settings: null,
@@ -42,6 +44,7 @@ const useProvidePage = (): UsePageReturn => {
   const [error, setError] = useState<string | null>(null);
   const loadedRef = useRef(false);
   const lastUserIdRef = useRef<string | null>(null);
+  const lastPageIdRef = useRef<string | null>(null);
 
   const loadPage = useCallback(async () => {
     if (!user) {
@@ -53,8 +56,16 @@ const useProvidePage = (): UsePageReturn => {
       setLoading(true);
       setError(null);
 
-      // Uma única chamada para buscar todos os dados
-      const dashboardData = await DashboardService.getDashboardData(user.id);
+      const pageId = searchParams.get('pageId');
+      
+      // Se houver pageId nos query params, busca dados dessa página específica
+      let dashboardData;
+      if (pageId) {
+        dashboardData = await DashboardService.getDashboardDataByPageId(user.id, pageId);
+      } else {
+        // Caso contrário, busca a página primária
+        dashboardData = await DashboardService.getDashboardData(user.id);
+      }
 
       if (!dashboardData) {
         throw new Error('Não foi possível carregar os dados');
@@ -83,12 +94,19 @@ const useProvidePage = (): UsePageReturn => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, searchParams]);
 
   useEffect(() => {
-    // Evitar chamadas duplicadas: só carrega se user mudou e ainda não carregou para este user
+    const pageId = searchParams.get('pageId');
+    
+    // Evitar chamadas duplicadas: só carrega se user ou pageId mudou
     if (user?.id && user.id !== lastUserIdRef.current) {
       lastUserIdRef.current = user.id;
+      loadedRef.current = false;
+    }
+    
+    if (pageId !== lastPageIdRef.current) {
+      lastPageIdRef.current = pageId;
       loadedRef.current = false;
     }
     
@@ -99,9 +117,10 @@ const useProvidePage = (): UsePageReturn => {
       // Reset quando user faz logout
       loadedRef.current = false;
       lastUserIdRef.current = null;
+      lastPageIdRef.current = null;
       setLoading(false);
     }
-  }, [user?.id, loadPage]);
+  }, [user?.id, searchParams, loadPage]);
 
   const refreshPage = useCallback(async () => {
     await loadPage();

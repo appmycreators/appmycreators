@@ -15,8 +15,8 @@ import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
  */
 
 const PublicPage = () => {
-  const { username } = useParams<{ username: string }>();
-  const { page, resources, galleries, socials, socialsDisplayMode, settings, loading, error } = usePublicPageOptimized(username || '');
+  const { slug } = useParams<{ slug: string }>();
+  const { page, resources, galleries, socials, socialsDisplayMode, settings, loading, error } = usePublicPageOptimized(slug || '');
   
   const handleLinkClick = (url: string) => {
     if (!url) return;
@@ -39,7 +39,7 @@ const PublicPage = () => {
         <div className="text-center space-y-4">
           <div className="text-6xl">😕</div>
           <h1 className="text-2xl font-bold text-gray-800">Página não encontrada</h1>
-          <p className="text-gray-600">O usuário @{username} não foi encontrado.</p>
+          <p className="text-gray-600">A página @{slug} não foi encontrada.</p>
         </div>
       </div>
     );

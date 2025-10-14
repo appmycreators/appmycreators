@@ -24,6 +24,9 @@ const ImageBannerBlock = ({ bannerId, onEditBanner, onDeleteBanner }: ImageBanne
       title={banner.title}
       image={banner.imageUrl}
       url={banner.linkUrl}
+      textColor={banner.textColor}
+      bgColor={banner.bgColor}
+      visibleTitle={banner.visibleTitle}
       onEdit={() => onEditBanner(banner)}
       onDelete={() => onDeleteBanner(banner.id)}
     />
