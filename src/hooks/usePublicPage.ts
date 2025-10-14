@@ -28,6 +28,7 @@ export const usePublicPageOptimized = (username: string): PublicPageData => {
     headerNameColor: null,
     headerBioColor: null,
     showBadge: false,
+    galleryContainerColor: null,
     galleryTitleColor: null,
     galleryCardBgColor: null,
     galleryProductNameColor: null,
@@ -39,6 +40,7 @@ export const usePublicPageOptimized = (username: string): PublicPageData => {
     galleryHighlightTextColor: null,
     socialIconBgColor: null,
     socialIconColor: null,
+    fontFamily: 'Poppins',
   }), [username]);
 
   const query = useQuery({
@@ -199,6 +201,7 @@ function transformPageData(pageData: any, username: string) {
       headerNameColor: settings.header_name_color || null,
       headerBioColor: settings.header_bio_color || null,
       showBadge: settings.show_badge_check ?? false,
+      galleryContainerColor: settings.gallery_container_bg_color || null,
       galleryTitleColor: settings.gallery_title_color || null,
       galleryCardBgColor: settings.gallery_card_bg_color || null,
       galleryProductNameColor: settings.gallery_product_name_color || null,
@@ -210,6 +213,7 @@ function transformPageData(pageData: any, username: string) {
       galleryHighlightTextColor: settings.gallery_highlight_text_color || null,
       socialIconBgColor: settings.social_icon_bg_color || null,
       socialIconColor: settings.social_icon_color || null,
+      fontFamily: settings.font_family || 'Poppins',
     },
   } as Omit<PublicPageData, 'loading' | 'error'>;
 }

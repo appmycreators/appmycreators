@@ -21,7 +21,7 @@ const ShareModal = ({ open, onClose, username, url }: ShareModalProps) => {
 
   const shareUrl = useMemo(() => {
     if (url) return url;
-    if (username && typeof window !== "undefined") return `${window.location.origin}/${username}`;
+    if (username) return `https://mycreators.me/${username}`;
     if (typeof window !== "undefined") return `${window.location.origin}/preview`;
     return "/preview";
   }, [url, username]);

@@ -6,6 +6,7 @@ export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 interface UseGalleryColorsReturn {
   galleryTitleColor: string | null;
+  galleryContainerBgColor: string | null;
   galleryCardBgColor: string | null;
   galleryProductNameColor: string | null;
   galleryProductDescriptionColor: string | null;
@@ -19,6 +20,7 @@ interface UseGalleryColorsReturn {
   lastSaved: Date | null;
   saveError: string | null;
   updateGalleryTitleColor: (color: string) => Promise<void>;
+  updateGalleryContainerBgColor: (color: string) => Promise<void>;
   updateGalleryCardBgColor: (color: string) => Promise<void>;
   updateGalleryProductNameColor: (color: string) => Promise<void>;
   updateGalleryProductDescriptionColor: (color: string) => Promise<void>;
@@ -32,6 +34,7 @@ interface UseGalleryColorsReturn {
 export const useGalleryColors = (): UseGalleryColorsReturn => {
   const { pageData, loading: pageLoading } = usePage();
   const [galleryTitleColor, setGalleryTitleColor] = useState<string | null>(null);
+  const [galleryContainerBgColor, setGalleryContainerBgColor] = useState<string | null>(null);
   const [galleryCardBgColor, setGalleryCardBgColor] = useState<string | null>(null);
   const [galleryProductNameColor, setGalleryProductNameColor] = useState<string | null>(null);
   const [galleryProductDescriptionColor, setGalleryProductDescriptionColor] = useState<string | null>(null);
@@ -54,6 +57,7 @@ export const useGalleryColors = (): UseGalleryColorsReturn => {
     const settings = pageData.settings;
 
     setGalleryTitleColor(settings.gallery_title_color || null);
+    setGalleryContainerBgColor(settings.gallery_container_bg_color || null);
     setGalleryCardBgColor(settings.gallery_card_bg_color || null);
     setGalleryProductNameColor(settings.gallery_product_name_color || null);
     setGalleryProductDescriptionColor(settings.gallery_product_description_color || null);
@@ -85,6 +89,34 @@ export const useGalleryColors = (): UseGalleryColorsReturn => {
         setLastSaved(new Date());
       } catch (error) {
         console.error('Error updating gallery title color:', error);
+        setSaveStatus('error');
+        setSaveError(error instanceof Error ? error.message : 'Erro ao salvar');
+      }
+    },
+    [pageData.page]
+  );
+
+  const updateGalleryContainerBgColor = useCallback(
+    async (color: string) => {
+      if (!pageData.page) return;
+
+      setSaveStatus('saving');
+      setSaveError(null);
+
+      try {
+        const success = await PageSettingsService.updateSettings(pageData.page.id, {
+          gallery_container_bg_color: color,
+        });
+
+        if (!success) {
+          throw new Error('Falha ao salvar cor de fundo da lista de produtos');
+        }
+
+        setGalleryContainerBgColor(color);
+        setSaveStatus('saved');
+        setLastSaved(new Date());
+      } catch (error) {
+        console.error('Error updating gallery container bg color:', error);
         setSaveStatus('error');
         setSaveError(error instanceof Error ? error.message : 'Erro ao salvar');
       }
@@ -318,6 +350,7 @@ export const useGalleryColors = (): UseGalleryColorsReturn => {
 
   return {
     galleryTitleColor,
+    galleryContainerBgColor,
     galleryCardBgColor,
     galleryProductNameColor,
     galleryProductDescriptionColor,
@@ -331,6 +364,7 @@ export const useGalleryColors = (): UseGalleryColorsReturn => {
     lastSaved,
     saveError,
     updateGalleryTitleColor,
+    updateGalleryContainerBgColor,
     updateGalleryCardBgColor,
     updateGalleryProductNameColor,
     updateGalleryProductDescriptionColor,

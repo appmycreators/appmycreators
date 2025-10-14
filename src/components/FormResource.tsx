@@ -28,6 +28,7 @@ interface FormResourceProps {
   cardTextColor?: string;
   onEdit?: () => void;
   onDelete?: () => void;
+  isPublic?: boolean;
 }
 
 export const FormResource = ({
@@ -38,6 +39,7 @@ export const FormResource = ({
   cardTextColor = '#000000',
   onEdit,
   onDelete,
+  isPublic = false,
 }: FormResourceProps) => {
   const [formState, setFormState] = useState({
     name: '',
@@ -160,7 +162,7 @@ export const FormResource = ({
       <div className="mb-4">
         <div className="flex items-start justify-between mb-1">
           <h3 className="text-lg font-bold">{title}</h3>
-          {(onEdit || onDelete) && (
+          {!isPublic && (onEdit || onDelete) && (
             <div className="flex items-center gap-1">
               {onEdit && (
                 <Button 

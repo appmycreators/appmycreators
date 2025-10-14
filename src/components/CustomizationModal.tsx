@@ -2,6 +2,8 @@ import { useState } from "react";
 import { X, ChevronDown, Palette, Type, Square, Grid3X3, FileText, Zap, Lock, Instagram } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import ColorPicker from "@/components/ui/ColorPicker";
+import { useFontSettings } from "@/hooks/useFontSettings";
 
 interface CustomizationModalProps {
   open: boolean;
@@ -19,6 +21,8 @@ interface CustomizationModalProps {
   // Gallery colors
   onSelectGalleryTitleColor?: (color: string) => void;
   currentGalleryTitleColor?: string | null;
+  onSelectGalleryContainerBgColor?: (color: string) => void;
+  currentGalleryContainerBgColor?: string | null;
   onSelectGalleryCardBgColor?: (color: string) => void;
   currentGalleryCardBgColor?: string | null;
   onSelectGalleryProductNameColor?: (color: string) => void;
@@ -81,18 +85,38 @@ const customizationSections = [
   },
 ];
 
-const PRESET_COLORS = [
-  "#000000",
-  "#282c34",
-  "#ffffff",
-  "#2F80ED",
-  "#7B61FF",
-  "#10B981",
-  "#FF3EB5",
-  "#F3D01C",
-  "#F59E0B",
-  "#EF4444",
-  "#FB7185",
+// Fontes disponíveis com suas configurações
+const AVAILABLE_FONTS = [
+  { 
+    name: "Inter", 
+    displayName: "Inter",
+    fontFamily: "Inter, sans-serif",
+    className: "font-inter"
+  },
+  { 
+    name: "Roboto", 
+    displayName: "Roboto",
+    fontFamily: "Roboto, sans-serif",
+    className: "font-roboto"
+  },
+  { 
+    name: "Open Sans", 
+    displayName: "Open Sans",
+    fontFamily: "'Open Sans', sans-serif",
+    className: "font-opensans"
+  },
+  { 
+    name: "Poppins", 
+    displayName: "Poppins",
+    fontFamily: "Poppins, sans-serif",
+    className: "font-sans" // Já está configurado no Tailwind
+  },
+  { 
+    name: "Montserrat", 
+    displayName: "Montserrat",
+    fontFamily: "Montserrat, sans-serif",
+    className: "font-montserrat"
+  }
 ];
 
 const CustomizationModal = ({ 
@@ -110,6 +134,8 @@ const CustomizationModal = ({
   currentHeaderBioColor,
   onSelectGalleryTitleColor,
   currentGalleryTitleColor,
+  onSelectGalleryContainerBgColor,
+  currentGalleryContainerBgColor,
   onSelectGalleryCardBgColor,
   currentGalleryCardBgColor,
   onSelectGalleryProductNameColor,
@@ -131,6 +157,8 @@ const CustomizationModal = ({
   onSelectSocialIconColor,
   currentSocialIconColor
 }: CustomizationModalProps) => {
+  const { fontFamily, updateFontFamily, saveStatus } = useFontSettings();
+  
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] p-0 overflow-hidden">
@@ -173,307 +201,149 @@ const CustomizationModal = ({
                         <div className="space-y-3">
                           {section.id === "header" && (
                             <div className="space-y-4">
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor do nome</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectHeaderNameColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentHeaderNameColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor do nome ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor da descrição/bio</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectHeaderBioColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentHeaderBioColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor da bio ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
+                              <ColorPicker
+                                label="Cor do nome"
+                                value={currentHeaderNameColor || undefined}
+                                onChange={(color) => onSelectHeaderNameColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor da descrição/bio"
+                                value={currentHeaderBioColor || undefined}
+                                onChange={(color) => onSelectHeaderBioColor?.(color)}
+                              />
                             </div>
                           )}
+                          
                           {section.id === "background" && (
                             <div>
-                              <div className="text-xs text-muted-foreground mb-2">Cores</div>
-                              <div className="flex flex-wrap gap-3">
-                                {PRESET_COLORS.map((color) => (
-                                  <button
-                                    key={color}
-                                    type="button"
-                                    onClick={() => onSelectBackground?.(color)}
-                                    className={`w-9 h-9 rounded-full border ${currentBackground === color ? "ring-2 ring-[#25a3b1]" : "border-muted"}`}
-                                    style={{ backgroundColor: color }}
-                                    aria-label={`Selecionar cor ${color}`}
-                                  />
-                                ))}
-                              </div>
-                              <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
-                                <Lock className="w-4 h-4" />
-                                Customizar
-                              </div>
-                              <div className="mt-2">
-                                <button type="button" className="w-9 h-9 rounded-full border border-dashed border-muted flex items-center justify-center text-muted-foreground">+</button>
-                              </div>
+                              <ColorPicker
+                                label="Cores"
+                                value={currentBackground || undefined}
+                                onChange={(color) => onSelectBackground?.(color)}
+                              />
+                              
                             </div>
                           )}
+                          
                           {section.id === "link-buttons" && (
                             <div className="space-y-4">
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor de fundo dos cards</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectCardBgColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentCardBgColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor de fundo ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor do texto dos cards</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectCardTextColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentCardTextColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor de texto ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
+                              <ColorPicker
+                                label="Cor de fundo dos cards"
+                                value={currentCardBgColor || undefined}
+                                onChange={(color) => onSelectCardBgColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor do texto dos cards"
+                                value={currentCardTextColor || undefined}
+                                onChange={(color) => onSelectCardTextColor?.(color)}
+                              />
                             </div>
                           )}
+                          
                           {section.id === "product-gallery" && (
                             <div className="space-y-4">
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor do título da galeria</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectGalleryTitleColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentGalleryTitleColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor do título ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor de fundo do card</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectGalleryCardBgColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentGalleryCardBgColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor de fundo ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor do nome do produto</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectGalleryProductNameColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentGalleryProductNameColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor do nome ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor da descrição</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectGalleryProductDescriptionColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentGalleryProductDescriptionColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor da descrição ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor de fundo do botão</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectGalleryButtonBgColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentGalleryButtonBgColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor do botão ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor do texto do botão</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectGalleryButtonTextColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentGalleryButtonTextColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor do texto ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor do texto do valor</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectGalleryPriceColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentGalleryPriceColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor do preço ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor de fundo do destaque</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectGalleryHighlightBgColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentGalleryHighlightBgColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor de fundo do destaque ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor do texto do destaque</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectGalleryHighlightTextColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentGalleryHighlightTextColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor do texto do destaque ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
+                              <ColorPicker
+                                label="Cor do título da galeria"
+                                value={currentGalleryTitleColor || undefined}
+                                onChange={(color) => onSelectGalleryTitleColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor de fundo da lista de produtos"
+                                value={currentGalleryContainerBgColor || undefined}
+                                onChange={(color) => onSelectGalleryContainerBgColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor de fundo do card"
+                                value={currentGalleryCardBgColor || undefined}
+                                onChange={(color) => onSelectGalleryCardBgColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor do nome do produto"
+                                value={currentGalleryProductNameColor || undefined}
+                                onChange={(color) => onSelectGalleryProductNameColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor da descrição"
+                                value={currentGalleryProductDescriptionColor || undefined}
+                                onChange={(color) => onSelectGalleryProductDescriptionColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor de fundo do botão"
+                                value={currentGalleryButtonBgColor || undefined}
+                                onChange={(color) => onSelectGalleryButtonBgColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor do texto do botão"
+                                value={currentGalleryButtonTextColor || undefined}
+                                onChange={(color) => onSelectGalleryButtonTextColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor do texto do valor"
+                                value={currentGalleryPriceColor || undefined}
+                                onChange={(color) => onSelectGalleryPriceColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor de fundo do destaque"
+                                value={currentGalleryHighlightBgColor || undefined}
+                                onChange={(color) => onSelectGalleryHighlightBgColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor do texto do destaque"
+                                value={currentGalleryHighlightTextColor || undefined}
+                                onChange={(color) => onSelectGalleryHighlightTextColor?.(color)}
+                              />
                             </div>
                           )}
+                          
                           {section.id === "text-block" && (
                             <div className="space-y-4">
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor de fundo dos ícones</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectSocialIconBgColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentSocialIconBgColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor de fundo ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-xs text-muted-foreground mb-2">Cor dos ícones</div>
-                                <div className="flex flex-wrap gap-3">
-                                  {PRESET_COLORS.map((color) => (
-                                    <button
-                                      key={color}
-                                      type="button"
-                                      onClick={() => onSelectSocialIconColor?.(color)}
-                                      className={`w-9 h-9 rounded-full border ${
-                                        currentSocialIconColor === color ? "ring-2 ring-[#25a3b1]" : "border-muted"
-                                      }`}
-                                      style={{ backgroundColor: color }}
-                                      aria-label={`Selecionar cor do ícone ${color}`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
+                              <ColorPicker
+                                label="Cor de fundo dos ícones"
+                                value={currentSocialIconBgColor || undefined}
+                                onChange={(color) => onSelectSocialIconBgColor?.(color)}
+                              />
+                              <ColorPicker
+                                label="Cor dos ícones"
+                                value={currentSocialIconColor || undefined}
+                                onChange={(color) => onSelectSocialIconColor?.(color)}
+                              />
                             </div>
                           )}
+                          
                           {section.id === "font" && (
                             <div className="space-y-2">
-                              {["Inter", "Roboto", "Open Sans", "Poppins", "Montserrat"].map((font) => (
+                              {AVAILABLE_FONTS.map((font) => (
                                 <div 
-                                  key={font}
-                                  className="p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+                                  key={font.name}
+                                  onClick={() => updateFontFamily(font.name)}
+                                  className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
+                                    fontFamily === font.name 
+                                      ? "border-primary bg-primary/5 ring-2 ring-primary/20" 
+                                      : "border-muted hover:bg-muted/50 hover:border-muted-foreground"
+                                  }`}
+                                  style={{ fontFamily: font.fontFamily }}
                                 >
-                                  <span className="font-medium">{font}</span>
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                      <span className="font-medium text-base">
+                                        {font.displayName}
+                                      </span>
+                                      <div className="text-xs text-muted-foreground mt-1" style={{ fontFamily: font.fontFamily }}>
+                                        Exemplo de texto com esta fonte
+                                      </div>
+                                    </div>
+                                    {fontFamily === font.name && (
+                                      <div className="ml-3 flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                                        {saveStatus === 'saving' && (
+                                          <div className="text-xs text-muted-foreground">Salvando...</div>
+                                        )}
+                                        {saveStatus === 'saved' && (
+                                          <div className="text-xs text-green-600">Salvo!</div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>

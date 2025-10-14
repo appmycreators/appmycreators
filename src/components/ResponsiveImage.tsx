@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 export type ResponsiveImageProps = {
-  src: string;
+  src: string | null | undefined;
   alt: string;
   widths: number[]; // e.g. [320, 480, 640]
   sizes: string; // e.g. "(min-width: 640px) 672px, 100vw"
@@ -16,6 +16,7 @@ export type ResponsiveImageProps = {
 
 // Detect if we can transform via Supabase Storage Image Transformation
 function canTransformWithSupabase(url: string): boolean {
+  if (!url || typeof url !== 'string') return false;
   return (
     url.includes("/storage/v1/object/") ||
     url.includes("/storage/v1/object/public/") ||
@@ -25,7 +26,7 @@ function canTransformWithSupabase(url: string): boolean {
 
 // Convert /storage/v1/object/... to /storage/v1/render/image/...
 function toRenderBase(url: string): string | null {
-  if (!url.includes("/storage/v1/object/")) return null;
+  if (!url || typeof url !== 'string' || !url.includes("/storage/v1/object/")) return null;
   const base = url.replace("/storage/v1/object/", "/storage/v1/render/image/");
   return base.split("?")[0];
 }
@@ -66,6 +67,17 @@ export default function ResponsiveImage({
   fetchPriority,
 }: ResponsiveImageProps) {
   const imgRef = useRef<HTMLImageElement>(null);
+
+  // Early return if src is invalid
+  if (!src || typeof src !== 'string') {
+    return (
+      <div 
+        className={className} 
+        style={style}
+        aria-label={alt || 'Imagem não disponível'}
+      />
+    );
+  }
 
   useEffect(() => {
     if (imgRef.current && fetchPriority) {

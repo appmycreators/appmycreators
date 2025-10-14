@@ -107,6 +107,7 @@ export interface PageSettings {
   header_bio_color: string | null;
   avatar_border_color: string | null;
   show_badge_check: boolean | null;
+  gallery_container_bg_color: string | null;
   gallery_title_color: string | null;
   gallery_card_bg_color: string | null;
   gallery_product_name_color: string | null;
@@ -118,6 +119,7 @@ export interface PageSettings {
   gallery_highlight_text_color: string | null;
   social_icon_bg_color: string | null;
   social_icon_color: string | null;
+  font_family: string | null;
 }
 
 export interface Resource {
@@ -245,6 +247,7 @@ export const PageService = {
         card_text_color: '#ffffff',
         header_name_color: '#ffffff',
         header_bio_color: '#ffffff',
+        gallery_container_bg_color: '#282c34',
         gallery_card_bg_color: '#ffffff',
         gallery_product_name_color: '#000000',
         gallery_product_description_color: '#000000',

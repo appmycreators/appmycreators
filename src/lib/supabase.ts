@@ -64,6 +64,7 @@ export interface Database {
           background_color: string | null;
           background_gradient: string | null;
           theme: string;
+          font_family: string | null;
           created_at: string;
           updated_at: string;
         };
