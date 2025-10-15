@@ -51,9 +51,7 @@ const AnimatedRoutes = () => {
             {/* Protected Routes */}
             <Route path="/" element={
               <ProtectedRoute>
-                <PageProvider>
-                  <Home />
-                </PageProvider>
+                <Home />
               </ProtectedRoute>
             } />
             <Route path="/editor" element={
@@ -65,30 +63,22 @@ const AnimatedRoutes = () => {
             } />
             <Route path="/edit-header" element={
               <ProtectedRoute>
-                <PageProvider>
-                  <EditHeader />
-                </PageProvider>
+                <EditHeader />
               </ProtectedRoute>
             } />
             <Route path="/leads" element={
               <ProtectedRoute>
-                <PageProvider>
-                  <Leads />
-                </PageProvider>
+                <Leads />
               </ProtectedRoute>
             } />
             <Route path="/analytics" element={
               <ProtectedRoute>
-                <PageProvider>
-                  <Analytics />
-                </PageProvider>
+                <Analytics />
               </ProtectedRoute>
             } />
             <Route path="/pages" element={
               <ProtectedRoute>
-                <PageProvider>
-                  <MyPages />
-                </PageProvider>
+                <MyPages />
               </ProtectedRoute>
             } />
             

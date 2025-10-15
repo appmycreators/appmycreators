@@ -101,6 +101,7 @@ const PublicPage = () => {
               headerMediaUrl={settings.headerMediaUrl}
               headerMediaType={settings.headerMediaType}
               avatarBorderColor={settings.avatarBorderColor}
+              nitroAnimationUrl={settings.nitroAnimationUrl}
             />
           ) : null}
           

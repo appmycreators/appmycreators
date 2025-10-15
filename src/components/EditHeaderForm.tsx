@@ -16,6 +16,14 @@ import customizeAddIcon from "@/assets/customize_add_icon.png";
 import type { GifOptions } from "@/utils/videoToGif";
 import type { ImageCropOptions } from "@/components/ImageEditorModal";
 
+// Carregar automaticamente todos os nitros da pasta
+const nitroModules = import.meta.glob('@/assets/nitros/*.png', { eager: true, import: 'default' });
+const NITRO_ANIMATIONS = Object.entries(nitroModules).map(([path, url]) => ({
+  id: path.split('/').pop()?.replace('.png', '') || '',
+  url: url as string,
+  name: path.split('/').pop()?.replace('.png', '') || ''
+}));
+
 interface EditHeaderFormProps {
   open: boolean;
   onClose: () => void;
@@ -57,18 +65,22 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
     headerMediaUrl: savedHeaderMedia,
     headerMediaType: savedHeaderMediaType,
     showBadge: savedShowBadge,
+    nitroAnimationUrl: savedNitroAnimationUrl,
     updateProfileName, 
     updateBio, 
     updateAvatar,
     updateAvatarBorderColor,
     updateHeaderMedia,
     removeHeaderMedia,
-    updateShowBadge
+    updateShowBadge,
+    updateNitroAnimation
   } = useHeaderSync();
   
   const [name, setName] = useState<string>("");
   const [bio, setBio] = useState<string>("");
   const [showBadge, setShowBadge] = useState<boolean>(false);
+  const [nitroEnabled, setNitroEnabled] = useState<boolean>(false);
+  const [selectedNitro, setSelectedNitro] = useState<string>("");
   const [avatarBorderColor, setAvatarBorderColor] = useState<string>('#ffffff');
   const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -96,7 +108,11 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
     if (savedAvatar) setAvatarPreview(getAvatarUrl(savedAvatar));
     if (savedHeaderMedia) setHeaderMediaPreview(savedHeaderMedia);
     if (savedHeaderMediaType) setHeaderMediaType(savedHeaderMediaType);
-  }, [profileName, savedBio, savedShowBadge, savedAvatarBorderColor, savedAvatar, savedHeaderMedia, savedHeaderMediaType]);
+    if (savedNitroAnimationUrl) {
+      setNitroEnabled(true);
+      setSelectedNitro(savedNitroAnimationUrl);
+    }
+  }, [profileName, savedBio, savedShowBadge, savedAvatarBorderColor, savedAvatar, savedHeaderMedia, savedHeaderMediaType, savedNitroAnimationUrl]);
 
   const onPickImage = () => fileInputRef.current?.click();
   
@@ -234,6 +250,13 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
     // Salvar cor da borda do avatar se mudou
     if (avatarBorderColor !== savedAvatarBorderColor) {
       await updateAvatarBorderColor(avatarBorderColor);
+      updated = true;
+    }
+
+    // Salvar animação Nitro se mudou
+    const nitroUrl = nitroEnabled ? selectedNitro : '';
+    if (nitroUrl !== savedNitroAnimationUrl) {
+      await updateNitroAnimation(nitroUrl);
       updated = true;
     }
 
@@ -491,6 +514,42 @@ const EditHeaderForm = ({ open, onClose }: EditHeaderFormProps) => {
               className="hidden" 
               onChange={onHeaderMediaFileChange} 
             />
+          </div>
+
+          {/* Nitro MC */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="text-sm font-medium text-foreground">Nitro MC</div>
+                <div className="text-xs text-muted-foreground mt-1">Adicionar animação no avatar</div>
+              </div>
+              <Switch
+                checked={nitroEnabled}
+                onCheckedChange={setNitroEnabled}
+              />
+            </div>
+            
+            {nitroEnabled && (
+              <div className="mt-3 p-4 bg-muted/30 rounded-lg border space-y-3">
+                <div className="text-xs font-medium text-muted-foreground">Escolha uma animação:</div>
+                <div className="grid grid-cols-3 gap-3">
+                  {NITRO_ANIMATIONS.map((nitro) => (
+                    <button
+                      key={nitro.id}
+                      type="button"
+                      onClick={() => setSelectedNitro(nitro.url)}
+                      className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all hover:scale-105 ${
+                        selectedNitro === nitro.url
+                          ? "ring-2 ring-[#25a3b1] border-[#25a3b1]"
+                          : "border-muted hover:border-muted-foreground"
+                      }`}
+                    >
+                      <img src={nitro.url} alt={`Nitro ${nitro.name}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Botões de ação */}

@@ -120,6 +120,7 @@ export interface PageSettings {
   social_icon_bg_color: string | null;
   social_icon_color: string | null;
   font_family: string | null;
+  nitro_animation_url: string | null;
 }
 
 export interface Resource {

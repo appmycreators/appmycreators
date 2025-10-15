@@ -19,6 +19,7 @@ interface PublicHeaderProps {
   headerMediaUrl?: string;
   headerMediaType?: string;
   avatarBorderColor?: string;
+  nitroAnimationUrl?: string;
 }
 
 const PublicHeader = ({
@@ -32,6 +33,7 @@ const PublicHeader = ({
   headerMediaUrl,
   headerMediaType,
   avatarBorderColor,
+  nitroAnimationUrl,
 }: PublicHeaderProps) => {
   return (
     <>
@@ -67,16 +69,25 @@ const PublicHeader = ({
             )}
 
             <div className="absolute left-0 right-0 bottom-6 z-10 flex flex-col items-center text-center px-4">
-              <div 
-                className="w-16 h-16 rounded-full overflow-hidden border-2 bg-white shadow-md"
-                style={{ borderColor: avatarBorderColor || '#ffffff' }}
-              >
-                <img 
-                  src={profileImageUrl || profileImage} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                  loading="eager"
-                />
+              <div className="relative w-32 h-32 flex items-center justify-center">
+                <div 
+                  className="rounded-full overflow-hidden border-2 bg-white shadow-md relative z-0 w-[100px] h-[100px]"
+                  style={{ borderColor: avatarBorderColor || '#ffffff' }}
+                >
+                  <img 
+                    src={profileImageUrl || profileImage} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                    loading="eager"
+                  />
+                </div>
+                {nitroAnimationUrl && (
+                  <img 
+                    src={nitroAnimationUrl} 
+                    alt="Nitro Animation" 
+                    className="absolute inset-0 w-32 h-32 pointer-events-none z-10"
+                  />
+                )}
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <h1 
@@ -115,16 +126,25 @@ const PublicHeader = ({
           )}
           
           <div className="flex flex-col items-center text-center space-y-3">
-            <div 
-              className="w-20 h-20 rounded-full overflow-hidden border-2 bg-white shadow-md"
-              style={{ borderColor: avatarBorderColor || '#ffffff' }}
-            >
-              <img
-                src={profileImageUrl || profileImage}
-                alt="Profile"
-                className="w-full h-full object-cover"
-                loading="eager"
-              />
+            <div className="relative w-32 h-32 flex items-center justify-center">
+              <div 
+                className="rounded-full overflow-hidden border-2 bg-white shadow-md relative z-0 w-[100px] h-[100px]"
+                style={{ borderColor: avatarBorderColor || '#ffffff' }}
+              >
+                <img
+                  src={profileImageUrl || profileImage}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                />
+              </div>
+              {nitroAnimationUrl && (
+                <img 
+                  src={nitroAnimationUrl} 
+                  alt="Nitro Animation" 
+                  className="absolute inset-0 w-32 h-32 pointer-events-none z-10"
+                />
+              )}
             </div>
             <div className="flex items-center gap-2">
               <h1 

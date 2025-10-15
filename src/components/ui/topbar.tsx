@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import ShareModal from "@/components/ShareModal";
 import AddPageModal from "@/components/modals/AddPageModal";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePage } from "@/hooks/usePage";
+import { usePageOptional } from "@/hooks/usePage";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Topbar = () => {
@@ -16,9 +16,14 @@ const Topbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Pegar o slug da página atual (requer PageProvider)
-  const { pageData } = usePage();
-  const slug = pageData.page?.slug || '';
+  // Verifica se está na rota "/editor" (MainContent/Editor)
+  const isEditorPage = location.pathname === "/editor";
+  const isMyPagesPage = location.pathname === "/pages";
+  
+  // Usar hook opcional - retorna null se não estiver no PageProvider
+  const pageContext = usePageOptional();
+  const slug = pageContext?.pageData.page?.slug || '';
+  
   const menuItems = [
     { icon: Home, label: "Início", path: "/" },
     { icon: Palette, label: "Customizar", path: "/pages" },
@@ -27,10 +32,6 @@ const Topbar = () => {
     { icon: Plus, label: "Adicionar página", badge: "Pro" },
     { icon: Settings, label: "Ajustes" },
   ];
-  
-  // Verifica se está na rota "/editor" (MainContent/Editor)
-  const isEditorPage = location.pathname === "/editor";
-  const isMyPagesPage = location.pathname === "/pages";
   
   // Handler quando uma página é criada com sucesso
   const handlePageCreated = () => {

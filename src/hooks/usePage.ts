@@ -198,3 +198,9 @@ export const usePage = (): UsePageReturn => {
 
   return context;
 };
+
+// Hook opcional que retorna null se não estiver dentro do Provider
+export const usePageOptional = (): UsePageReturn | null => {
+  const context = useContext(PageContext);
+  return context || null;
+};

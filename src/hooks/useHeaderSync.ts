@@ -16,6 +16,7 @@ interface UseHeaderSyncReturn {
   headerMediaType: string;
   headerMediaAspectRatio: HeaderMediaAspectRatio | null;
   showBadge: boolean;
+  nitroAnimationUrl: string;
   loading: boolean;
   saveStatus: SaveStatus;
   lastSaved: Date | null;
@@ -27,6 +28,7 @@ interface UseHeaderSyncReturn {
   updateHeaderMedia: (file: File, aspectRatio?: HeaderMediaAspectRatio) => Promise<void>;
   removeHeaderMedia: () => Promise<void>;
   updateShowBadge: (show: boolean) => Promise<void>;
+  updateNitroAnimation: (url: string) => Promise<void>;
 }
 
 export const useHeaderSync = (): UseHeaderSyncReturn => {
@@ -39,6 +41,7 @@ export const useHeaderSync = (): UseHeaderSyncReturn => {
   const [headerMediaType, setHeaderMediaType] = useState<string>('');
   const [headerMediaAspectRatio, setHeaderMediaAspectRatio] = useState<HeaderMediaAspectRatio | null>(null);
   const [showBadge, setShowBadge] = useState<boolean>(false);
+  const [nitroAnimationUrl, setNitroAnimationUrl] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -60,6 +63,7 @@ export const useHeaderSync = (): UseHeaderSyncReturn => {
     setHeaderMediaType(settings.header_media_type || '');
     setHeaderMediaAspectRatio(settings.header_media_aspect_ratio || null);
     setShowBadge(settings.show_badge_check ?? false);
+    setNitroAnimationUrl(settings.nitro_animation_url || '');
   }, [pageData.settings, pageLoading]);
 
   const updateProfileName = useCallback(
@@ -329,6 +333,37 @@ export const useHeaderSync = (): UseHeaderSyncReturn => {
     [pageData.page]
   );
 
+  const updateNitroAnimation = useCallback(
+    async (url: string) => {
+      if (!pageData.page) {
+        console.error('pageData.page não disponível');
+        return;
+      }
+
+      setSaveStatus('saving');
+      setSaveError(null);
+
+      try {
+        const success = await PageSettingsService.updateSettings(pageData.page.id, {
+          nitro_animation_url: url || null,
+        });
+
+        if (!success) {
+          throw new Error('Falha ao salvar animação Nitro');
+        }
+
+        setNitroAnimationUrl(url);
+        setSaveStatus('saved');
+        setLastSaved(new Date());
+      } catch (error) {
+        console.error('Error updating nitro animation:', error);
+        setSaveStatus('error');
+        setSaveError(error instanceof Error ? error.message : 'Erro ao salvar animação Nitro');
+      }
+    },
+    [pageData.page]
+  );
+
   return {
     profileName,
     bio,
@@ -338,6 +373,7 @@ export const useHeaderSync = (): UseHeaderSyncReturn => {
     headerMediaType,
     headerMediaAspectRatio,
     showBadge,
+    nitroAnimationUrl,
     loading: pageLoading || loading,
     saveStatus,
     lastSaved,
@@ -349,5 +385,6 @@ export const useHeaderSync = (): UseHeaderSyncReturn => {
     updateHeaderMedia,
     removeHeaderMedia,
     updateShowBadge,
+    updateNitroAnimation,
   };
 };
