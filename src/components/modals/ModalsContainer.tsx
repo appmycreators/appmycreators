@@ -37,8 +37,8 @@ interface ModalsContainerProps {
   handleUpdateLink: (id: string, data: any) => Promise<void>;
   handleAddImageBanner: (bannerData: any) => Promise<void>;
   handleUpdateImageBanner: (id: string, data: any) => Promise<void>;
-  handleAddGalleryItem: (galleryId: string, item: any) => Promise<void>;
-  handleUpdateGalleryItem: (galleryId: string, itemId: string, item: any) => Promise<void>;
+  handleAddGalleryItem: (galleryId: string, item: any, imageFile?: File) => Promise<void>;
+  handleUpdateGalleryItem: (galleryId: string, itemId: string, item: any, imageFile?: File) => Promise<void>;
   handleDeleteGalleryItem: (galleryId: string, itemId: string) => Promise<void>;
   handleRenameGallery: (galleryId: string, newTitle: string) => Promise<void>;
   handleDeleteGallery: (galleryId: string) => Promise<void>;
@@ -186,8 +186,8 @@ const ModalsContainer = ({
         open={modals.galleryItem.open}
         onClose={closeGalleryItemForm}
         initialItem={modals.galleryItem.editing}
-        onAddItem={(item) => activeGalleryId && handleAddGalleryItem(activeGalleryId, item)}
-        onUpdateItem={(item) => activeGalleryId && item.id && handleUpdateGalleryItem(activeGalleryId, item.id, item)}
+        onAddItem={(item, imageFile) => activeGalleryId && handleAddGalleryItem(activeGalleryId, item, imageFile)}
+        onUpdateItem={(item, imageFile) => activeGalleryId && item.id && handleUpdateGalleryItem(activeGalleryId, item.id, item, imageFile)}
         onDeleteItem={(id) => activeGalleryId && handleDeleteGalleryItem(activeGalleryId, id)}
       />
 

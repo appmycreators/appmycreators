@@ -329,6 +329,13 @@ export const StorageService = {
   },
 
   /**
+   * Otimizar imagem de galeria/produto
+   */
+  async optimizeGalleryImage(file: File): Promise<File> {
+    return this.compressImage(file, 1200, 0.8);
+  },
+
+  /**
    * Comprimir imagem antes do upload (opcional)
    */
   async compressImage(file: File, maxWidth: number = 1200, quality: number = 0.8): Promise<File> {

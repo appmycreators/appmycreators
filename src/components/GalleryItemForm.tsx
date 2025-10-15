@@ -6,9 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card } from "@/components/ui/card";
-import { X, Image as ImageIcon, Trash2, Sparkles, Heart, Send, MessageCircle, Plus, Pencil, Star } from "lucide-react";
+import { X, Image as ImageIcon, Trash2, Sparkles, Heart, Send, MessageCircle, Plus, Pencil, Star, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Lottie from "lottie-react";
+import { StorageService } from "@/services/storageService";
 import LottieAnimationPicker from "./LottieAnimationPicker";
 import AddCommentModal from "./AddCommentModal";
 import EditCommentModal from "./EditCommentModal";
@@ -49,8 +50,8 @@ export interface GalleryItem {
 interface GalleryItemFormProps {
   open: boolean;
   onClose: () => void;
-  onAddItem: (item: GalleryItem) => void;
-  onUpdateItem?: (item: GalleryItem) => void;
+  onAddItem: (item: GalleryItem, imageFile?: File) => void;
+  onUpdateItem?: (item: GalleryItem, imageFile?: File) => void;
   initialItem?: GalleryItem;
   onDeleteItem?: (id: string) => void;
 }
@@ -77,10 +78,12 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
   const [priceCents, setPriceCents] = useState(0);
   const [buttonText, setButtonText] = useState("Saiba Mais");
   const [imageUrl, setImageUrl] = useState<string | undefined>(undefined);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
   const [destaque, setDestaque] = useState(false);
   const [enableLottie, setEnableLottie] = useState(false);
   const [lottieAnimation, setLottieAnimation] = useState<string>("");
   const [showLottiePicker, setShowLottiePicker] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   
   // Estados para Prova Social
   const [enableSocialProof, setEnableSocialProof] = useState(false);
@@ -112,6 +115,7 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
         setPriceCents(initialItem.price || 0);
         setButtonText(initialItem.buttonText || "Saiba Mais");
         setImageUrl(initialItem.imageUrl);
+        setPendingImageFile(null); // Limpar arquivo pendente ao editar item existente
         setDestaque(initialItem.destaque || false);
         setEnableLottie(!!initialItem.lottieAnimation);
         setLottieAnimation(initialItem.lottieAnimation || "");
@@ -125,6 +129,7 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
         setPriceCents(0);
         setButtonText("Saiba Mais");
         setImageUrl(undefined);
+        setPendingImageFile(null);
         setDestaque(false);
         setEnableLottie(false);
         setLottieAnimation("");
@@ -152,12 +157,42 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setImageUrl(String(reader.result));
-    reader.readAsDataURL(file);
+    
+    setIsProcessingImage(true);
+    
+    try {
+      // Otimizar imagem da galeria
+      const optimizedFile = await StorageService.optimizeGalleryImage(file);
+      
+      // Armazenar o arquivo otimizado para upload posterior
+      setPendingImageFile(optimizedFile);
+      
+      // Criar preview da imagem otimizada
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageUrl(String(reader.result));
+        setIsProcessingImage(false);
+      };
+      reader.readAsDataURL(optimizedFile);
+    } catch (error) {
+      console.error('Erro ao otimizar imagem:', error);
+      // Fallback: usar arquivo original
+      setPendingImageFile(file);
+      
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImageUrl(String(reader.result));
+        setIsProcessingImage(false);
+      };
+      reader.readAsDataURL(file);
+      toast({
+        title: 'Aviso',
+        description: 'Não foi possível otimizar a imagem, mas ela foi carregada normalmente.',
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -189,14 +224,15 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
     };
 
     console.log('Payload being sent:', payload);
+    console.log('Pending image file:', pendingImageFile);
     console.log('enableLottie:', enableLottie);
     console.log('lottieAnimation state:', lottieAnimation);
 
     if (initialItem && onUpdateItem) {
-      onUpdateItem(payload);
+      onUpdateItem(payload, pendingImageFile || undefined);
       toast({ title: "Item atualizado!", description: "As alterações foram salvas." });
     } else {
-      onAddItem(payload);
+      onAddItem(payload, pendingImageFile || undefined);
       toast({ title: "Item adicionado!", description: "Seu produto foi criado com sucesso." });
     }
     onClose();
@@ -618,7 +654,15 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
 
                 <div className="flex-1 flex items-center justify-end gap-2">
                   {imageUrl && (
-                    <Button type="button" variant="secondary" onClick={() => setImageUrl(undefined)}>
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      onClick={() => {
+                        setImageUrl(undefined);
+                        setPendingImageFile(null);
+                      }}
+                      disabled={isProcessingImage}
+                    >
                       Excluir
                     </Button>
                   )}
@@ -629,8 +673,21 @@ export default function GalleryItemForm({ open, onClose, onAddItem, onUpdateItem
                     className="hidden"
                     onChange={handleImageChange}
                   />
-                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="hover:bg-[#00c6a9] hover:text-white border-[#00c6a9]">
-                    Selecionar
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => fileInputRef.current?.click()} 
+                    disabled={isProcessingImage}
+                    className="hover:bg-[#00c6a9] hover:text-white border-[#00c6a9]"
+                  >
+                    {isProcessingImage ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                        Otimizando...
+                      </>
+                    ) : (
+                      'Selecionar'
+                    )}
                   </Button>
                 </div>
               </Card>

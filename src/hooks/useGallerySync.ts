@@ -238,7 +238,7 @@ export const useGallerySync = (): UseGallerySyncReturn => {
 
         const newItem = await GalleryItemService.createGalleryItem(actualGalleryId, {
           name: item.name,
-          image_url: imageUrl,
+          image_url: imageUrl || '', // Usar string vazia quando não houver imagem (campo NOT NULL no banco)
           link_url: item.link,
           description: item.description || null,
           price: item.price ? item.price.toString() : null,
@@ -332,7 +332,7 @@ export const useGallerySync = (): UseGallerySyncReturn => {
 
         const updateData = {
           name: item.name,
-          image_url: imageUrl,
+          image_url: imageUrl || '', // Usar string vazia quando não houver imagem (campo NOT NULL no banco)
           link_url: item.link,
           description: item.description || null,
           price: item.price ? item.price.toString() : null,
@@ -358,7 +358,7 @@ export const useGallerySync = (): UseGallerySyncReturn => {
                       ? {
                           ...it,
                           ...item,
-                          imageUrl: imageUrl || it.imageUrl,
+                          imageUrl: imageUrl || undefined, // String vazia se não houver imagem
                           displayOrder: currentDisplayOrder,
                         }
                       : it

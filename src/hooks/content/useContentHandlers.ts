@@ -150,16 +150,16 @@ export const useContentHandlers = (
   };
 
   // Gallery Handlers
-  const handleAddGalleryItem = async (galleryId: string, item: GalleryItem) => {
-    await addGalleryItem(galleryId, item);
+  const handleAddGalleryItem = async (galleryId: string, item: GalleryItem, imageFile?: File) => {
+    await addGalleryItem(galleryId, item, imageFile);
     toast({
       title: "Item adicionado!",
       description: "O item foi adicionado à galeria.",
     });
   };
 
-  const handleUpdateGalleryItem = async (galleryId: string, itemId: string, item: GalleryItem) => {
-    await updateGalleryItem(galleryId, itemId, item);
+  const handleUpdateGalleryItem = async (galleryId: string, itemId: string, item: GalleryItem, imageFile?: File) => {
+    await updateGalleryItem(galleryId, itemId, item, imageFile);
     toast({
       title: "Item atualizado!",
       description: "As alterações foram salvas.",
