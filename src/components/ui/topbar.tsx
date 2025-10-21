@@ -28,6 +28,7 @@ const Topbar = () => {
   const menuItems = [
     { icon: Home, label: "Início", path: "/" },
     { icon: Palette, label: "Customizar", path: "/pages" },
+    { icon: Workflow, label: "Fluxos", path: "/flows" },
     { icon: FileText, label: "Leads", path: "/leads" },
     { icon: BarChart3, label: "Analytics", path: "/analytics" },
     { icon: Plus, label: "Adicionar página", badge: "Pro" },

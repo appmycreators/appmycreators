@@ -1,4 +1,6 @@
-import { PlayCircle, MessageSquare, Image, Type, Clock, CheckCircle } from 'lucide-react';
+import { PlayCircle, MessageSquare, Image, Type, Clock, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import type { NodeType, NodeData } from '@/types/flow.types';
 
 interface NodeTemplate {
@@ -101,6 +103,18 @@ const nodeTemplates: NodeTemplate[] = [
 ];
 
 export function FlowSidebar({ onAddNode }: FlowSidebarProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Iniciar colapsado em mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsCollapsed(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const handleDragStart = (event: React.DragEvent, nodeType: NodeType, defaultData: Partial<NodeData>) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.setData('nodeData', JSON.stringify(defaultData));
@@ -114,8 +128,29 @@ export function FlowSidebar({ onAddNode }: FlowSidebarProps) {
   };
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto">
-      <div className="space-y-4">
+    <div className="relative flex-shrink-0">
+      {/* Toggle Button - Sempre visível */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className={`
+          absolute top-4 z-20 h-8 w-8 rounded-full bg-white border border-gray-200 shadow-md hover:bg-gray-50
+          transition-all duration-300 text-gray-900
+          ${isCollapsed ? 'left-2' : 'left-60'}
+        `}
+        title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
+      >
+        {isCollapsed ? <ChevronRight size={16} className="text-gray-900" /> : <ChevronLeft size={16} className="text-gray-900" />}
+      </Button>
+
+      <aside 
+        className={`
+          bg-white border-r border-gray-200 overflow-y-auto transition-all duration-300
+          ${isCollapsed ? 'w-0' : 'w-64'}
+        `}
+      >
+        <div className={`space-y-4 p-4 ${isCollapsed ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}>
         <div>
           <h3 className="text-sm font-semibold text-gray-900 mb-1">Componentes</h3>
           <p className="text-xs text-gray-500">
@@ -160,7 +195,8 @@ export function FlowSidebar({ onAddNode }: FlowSidebarProps) {
             </p>
           </div>
         </div>
-      </div>
-    </aside>
+        </div>
+      </aside>
+    </div>
   );
 }
