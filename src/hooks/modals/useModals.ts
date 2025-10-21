@@ -29,6 +29,7 @@ export interface ModalsState {
   socials: ModalState;
   spotify: ModalState<Link>;
   youtube: ModalState<Link>;
+  twitch: ModalState<Link>;
   imageBanner: ModalState<ImageBanner>;
   galleryItem: ModalState<GalleryItem>;
   galleryRename: ModalState<{ id: string; title: string }>;
@@ -44,6 +45,7 @@ export const useModals = () => {
     socials: { open: false, editing: null },
     spotify: { open: false, editing: null },
     youtube: { open: false, editing: null },
+    twitch: { open: false, editing: null },
     imageBanner: { open: false, editing: null },
     galleryItem: { open: false, editing: null },
     galleryRename: { open: false, editing: null },
@@ -75,6 +77,7 @@ export const useModals = () => {
       socials: { open: false, editing: null },
       spotify: { open: false, editing: null },
       youtube: { open: false, editing: null },
+      twitch: { open: false, editing: null },
       imageBanner: { open: false, editing: null },
       galleryItem: { open: false, editing: null },
       galleryRename: { open: false, editing: null },
@@ -93,6 +96,8 @@ export const useModals = () => {
       openModal("spotify", link);
     } else if (link?.url.includes("youtube.com") || link?.url.includes("youtu.be")) {
       openModal("youtube", link);
+    } else if (link?.url.includes("twitch.tv") || link?.url.includes("player.twitch.tv")) {
+      openModal("twitch", link);
     } else {
       openModal("linkForm", link);
     }

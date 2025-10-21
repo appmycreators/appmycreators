@@ -1,6 +1,7 @@
 import { usePageSync } from "@/hooks/usePageSync";
 import SpotifyBlock from "./SpotifyBlock";
 import YouTubeBlock from "./YouTubeBlock";
+import TwitchBlock from "./TwitchBlock";
 import WhatsAppBlock from "./WhatsAppBlock";
 import StandardLinkBlock from "./StandardLinkBlock";
 
@@ -36,6 +37,16 @@ const LinkBlock = ({ linkId, onEditLink, onDeleteLink }: LinkBlockProps) => {
   if (link.url.includes("youtube.com") || link.url.includes("youtu.be")) {
     return (
       <YouTubeBlock
+        linkId={linkId}
+        onEditLink={onEditLink}
+        onDeleteLink={onDeleteLink}
+      />
+    );
+  }
+  
+  if (link.url.includes("twitch.tv") || link.url.includes("player.twitch.tv")) {
+    return (
+      <TwitchBlock
         linkId={linkId}
         onEditLink={onEditLink}
         onDeleteLink={onDeleteLink}

@@ -11,6 +11,7 @@ import WhatsAppForm from "../WhatsAppForm";
 import SocialNetworksForm from "../SocialNetworksForm";
 import SpotifyForm from "../SpotifyForm";
 import YouTubeForm from "../YouTubeForm";
+import TwitchForm from "../TwitchForm";
 import ImageBannerForm from "../ImageBannerForm";
 import GalleryItemForm from "../GalleryItemForm";
 import GalleryRenameDialog from "../GalleryRenameDialog";
@@ -170,6 +171,15 @@ const ModalsContainer = ({
         onAddLink={handleAddLink}
         onUpdateLink={handleUpdateLink}
         initialLink={modals.youtube.editing}
+      />
+
+      {/* Twitch Form Modal */}
+      <TwitchForm
+        open={modals.twitch.open}
+        onClose={() => closeModal("twitch")}
+        onAddLink={handleAddLink}
+        onUpdateLink={handleUpdateLink}
+        initialLink={modals.twitch.editing}
       />
 
       {/* Image Banner Modal */}

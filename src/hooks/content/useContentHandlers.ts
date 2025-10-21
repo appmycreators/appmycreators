@@ -87,6 +87,9 @@ export const useContentHandlers = (
     if (resource.id === "youtube") {
       openModal("youtube");
     }
+    if (resource.id === "twitch") {
+      openModal("twitch");
+    }
     if (resource.id === "image-section") {
       openModal("imageBanner");
     }
@@ -107,6 +110,7 @@ export const useContentHandlers = (
     closeModal("whatsApp");
     closeModal("spotify");
     closeModal("youtube");
+    closeModal("twitch");
   };
 
   const handleDeleteLink = async (id: string) => {

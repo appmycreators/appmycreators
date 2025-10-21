@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, ChevronRight, X, Youtube, MessageCircle, Grid3X3, Link, Users, Music, Bot, Hash, Instagram, FileText } from "lucide-react";
+import { Plus, ChevronRight, X, Youtube, MessageCircle, Grid3X3, Link, Users, Music, Bot, Hash, Instagram, FileText, Tv } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -7,11 +7,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import youtubeFormIcon from "@/assets/youtube/youtube_form_icon.svg";
 import imageSectionIcon from "@/assets/ui/image_section_icon.svg";
+import twitchIcon from "@/assets/icones/twitch.svg";
 
 interface ResourceSelectorProps {
   onSelectResource: (resource: Resource) => void;
 }
-
 interface Resource {
   id: string;
   title: string;
@@ -78,6 +78,14 @@ const resources: Resource[] = [
     icon: Youtube,
     image: youtubeFormIcon,
     color: "bg-red-500",
+  },
+  {
+    id: "twitch",
+    title: "Twitch",
+    description: "Adicione sua live da Twitch à sua página.",
+    icon: Tv,
+    image: twitchIcon,
+    color: "bg-purple-600",
   },
   {
     id: "image-section",

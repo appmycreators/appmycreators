@@ -125,6 +125,44 @@ const PublicContentBlock = ({
       </div>
     );
   }
+
+  // Twitch Block
+  if (item.type === 'twitch' || (item.type === 'link' && (item.url?.includes('twitch.tv') || item.url?.includes('player.twitch.tv')))) {
+    // Extrai o canal da URL
+    let channel = "";
+    try {
+      const u = new URL(item.url);
+      if (u.hostname === "player.twitch.tv") {
+        channel = u.searchParams.get("channel") || "";
+      } else if (u.hostname === "twitch.tv" || u.hostname === "www.twitch.tv") {
+        const pathParts = u.pathname.split("/").filter(Boolean);
+        channel = pathParts[0] || "";
+      }
+    } catch {
+      // ignore
+    }
+
+    if (!channel) return null;
+
+    // Constrói URL do embed com parent correto
+    const embedUrl = `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&parent=${encodeURIComponent(window.location.hostname)}`;
+
+    return (
+      <div className="w-full">
+        <iframe
+          src={embedUrl}
+          width="100%"
+          height="300"
+          frameBorder="0"
+          allowFullScreen
+          scrolling="no"
+          allow="autoplay; fullscreen"
+          loading="lazy"
+          className="rounded-xl"
+        />
+      </div>
+    );
+  }
   
   // Link Block
   if (item.type === 'link') {
