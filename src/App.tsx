@@ -22,6 +22,10 @@ const EditHeader = lazy(() => import("./pages/EditHeader"));
 const Leads = lazy(() => import("./pages/Leads"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const MyPages = lazy(() => import("./pages/MyPages"));
+const FlowBuilder = lazy(() => import("./pages/FlowBuilder"));
+const FlowsList = lazy(() => import("./pages/FlowsList"));
+const NewFlow = lazy(() => import("./pages/NewFlow"));
+const FlowLeads = lazy(() => import("./pages/FlowLeads"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -79,6 +83,26 @@ const AnimatedRoutes = () => {
             <Route path="/pages" element={
               <ProtectedRoute>
                 <MyPages />
+              </ProtectedRoute>
+            } />
+            <Route path="/flows" element={
+              <ProtectedRoute>
+                <FlowsList />
+              </ProtectedRoute>
+            } />
+            <Route path="/flows/new" element={
+              <ProtectedRoute>
+                <NewFlow />
+              </ProtectedRoute>
+            } />
+            <Route path="/flow/:flowId" element={
+              <ProtectedRoute>
+                <FlowBuilder />
+              </ProtectedRoute>
+            } />
+            <Route path="/flow/:flowId/leads" element={
+              <ProtectedRoute>
+                <FlowLeads />
               </ProtectedRoute>
             } />
             

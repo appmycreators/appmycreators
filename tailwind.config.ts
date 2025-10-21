@@ -122,6 +122,14 @@ export default {
             "background-position": "100% 50%",
           },
         },
+        "pulse-scale": {
+          "0%, 100%": {
+            transform: "scale(1)",
+          },
+          "50%": {
+            transform: "scale(1.05)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -129,6 +137,7 @@ export default {
         "collapsible-down": "collapsible-down 0.2s ease-out",
         "collapsible-up": "collapsible-up 0.2s ease-out",
         "gradient-x": "gradient-x 3s ease infinite",
+        "pulse-scale": "pulse-scale 1.5s ease-in-out infinite",
       },
     },
   },

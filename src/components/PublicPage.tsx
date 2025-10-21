@@ -7,6 +7,7 @@ import PublicContentList from "./public/PublicContentList";
 import FontProvider from "./FontProvider";
 import { Button } from "@/components/ui/button";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
+import { FloatingChatButton } from "./flow/public/FloatingChatButton";
 
 
 /**
@@ -67,6 +68,10 @@ const PublicPage = () => {
         type: resource.type || 'link'
       };
     }) || [];
+  
+  // Debug: Log flow resources
+  console.log('📦 Processed Content:', processedContent);
+  console.log('🔍 Flow Resources:', processedContent.filter((r: any) => r.type === 'flow'));
   
   return (
     <FontProvider fontFamily={settings.fontFamily}>
@@ -185,6 +190,42 @@ const PublicPage = () => {
             position="bottom-right"
           />
         )}
+
+        {/* Botão Flutuante do Flow (Chat) */}
+        {!loading && (() => {
+          // Buscar resource de flow ativo e publicado
+          const flowResource = processedContent.find((r: any) => 
+            r.type === 'flow' && 
+            r.is_visible && 
+            r.flow_data?.flow?.is_published
+          );
+
+          console.log('🔍 Buscando flow resource:', {
+            allFlows: processedContent.filter((r: any) => r.type === 'flow'),
+            flowResource,
+            hasFlowData: !!flowResource?.flow_data,
+            isPublished: flowResource?.flow_data?.flow?.is_published,
+            isVisible: flowResource?.is_visible
+          });
+
+          if (!flowResource?.flow_data) {
+            console.log('❌ Nenhum flow resource encontrado ou flow_data ausente');
+            return null;
+          }
+
+          const { flow, nodes, edges } = flowResource.flow_data;
+
+          console.log('✅ Renderizando FloatingChatButton:', { flow, nodes: nodes?.length, edges: edges?.length });
+
+          return (
+            <FloatingChatButton
+              flow={flow}
+              nodes={nodes}
+              edges={edges}
+              primaryColor={settings.primaryColor || flow.primary_color}
+            />
+          );
+        })()}
       </div>
     </FontProvider>
   );

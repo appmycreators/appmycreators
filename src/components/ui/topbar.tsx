@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Share, Menu, Home, Palette, BarChart3, Plus, Settings, FileText, ArrowLeft } from "lucide-react";
+import { Share, Menu, Home, Palette, BarChart3, Plus, Settings, FileText, ArrowLeft, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
@@ -19,6 +19,7 @@ const Topbar = () => {
   // Verifica se está na rota "/editor" (MainContent/Editor)
   const isEditorPage = location.pathname === "/editor";
   const isMyPagesPage = location.pathname === "/pages";
+  const isFlowsPage = location.pathname === "/flows";
   
   // Usar hook opcional - retorna null se não estiver no PageProvider
   const pageContext = usePageOptional();
@@ -124,6 +125,16 @@ const Topbar = () => {
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Adicionar Página</span>
+          </Button>
+        )}
+        {isFlowsPage && (
+          <Button
+            size="sm"
+            className="gap-2 bg-gradient-to-r from-[#00c6a9] to-[#03816e] hover:opacity-90 text-white"
+            onClick={() => navigate('/flows/new')}
+          >
+            <Workflow className="w-4 h-4" />
+            <span className="hidden sm:inline">Criar Novo Fluxo</span>
           </Button>
         )}
         {isEditorPage && (

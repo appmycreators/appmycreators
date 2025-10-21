@@ -7,7 +7,8 @@ import {
   Settings,
   LogOut,
   User,
-  FileText
+  FileText,
+  Workflow
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -31,6 +32,7 @@ const Sidebar = () => {
   const menuItems = [
     { icon: Home, label: "Início", path: "/" },
     { icon: Palette, label: "Customizar", path: "/pages" },
+    { icon: Workflow, label: "Fluxos", path: "/flows" },
     { icon: FileText, label: "Leads", path: "/leads" },
     { icon: BarChart3, label: "Analytics", path: "/analytics" },
     { icon: Plus, label: "Adicionar página", badge: "Pro" },

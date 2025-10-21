@@ -49,15 +49,20 @@ export const usePublicPageOptimized = (slug: string): PublicPageData => {
     enabled: !!slug,
     queryFn: async () => {
       if (!slug) throw new Error('Slug não fornecido');
+      console.log('🔄 Buscando dados da página:', slug);
       const { data: pageData, error } = await supabase.rpc('get_public_page_data_by_slug', { p_slug: slug });
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao buscar página:', error);
+        throw error;
+      }
       if (!pageData || (pageData as any).error) {
         const msg = (pageData as any)?.error || 'Página não encontrada';
         throw new Error(msg);
       }
+      console.log('✅ Dados da página recebidos:', pageData);
       return pageData as any;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 0, // Desabilitar cache temporariamente para debug
     retry: 1,
     refetchOnWindowFocus: false,
   });
@@ -173,6 +178,15 @@ function transformPageData(pageData: any, slug: string) {
         title: resource.title,
         form_data: resource.form_data,
         displayOrder: resource.display_order,
+      });
+    } else if (resource.flow_data) {
+      resources.push({
+        id: resource.id,
+        type: 'flow',
+        title: resource.title,
+        flow_data: resource.flow_data,
+        displayOrder: resource.display_order,
+        is_visible: resource.is_visible,
       });
     }
   });
