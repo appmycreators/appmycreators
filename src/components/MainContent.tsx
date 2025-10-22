@@ -28,6 +28,9 @@ import SocialNetworksSection from "./social/SocialNetworksSection";
 import ModalsContainer from "./modals/ModalsContainer";
 import DraggableContentList from "./content/DraggableContentList";
 
+// Componentes de templates
+import { ExportTemplateButton } from "./templates/ExportTemplateButton";
+
 
 
 const MainContent = () => {
@@ -160,6 +163,18 @@ const MainContent = () => {
 
         {/* Create New Page Button */}
         <CreateNewPageButton backgroundColor={backgroundColor} />
+
+        {/* Export Template Button */}
+        {pageData.page?.id && (
+          <div className="flex justify-center">
+            <ExportTemplateButton 
+              pageId={pageData.page.id}
+              onSuccess={(templateId) => {
+                console.log('Template created:', templateId);
+              }}
+            />
+          </div>
+        )}
 
         {/* View Page Button */}
         <ViewPageButton slug={slug} />
