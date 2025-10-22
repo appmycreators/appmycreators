@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTemplatePreview } from '@/hooks/useTemplatePreview';
 import { TemplatePreviewRenderer } from './TemplatePreviewRenderer';
+import iPhoneMockup from '@/assets/mockup/iPhone15.webp';
 
 interface TemplatePreviewMockupProps {
   templateId?: string | null;
@@ -30,7 +31,7 @@ export const TemplatePreviewMockup: React.FC<TemplatePreviewMockupProps> = ({
       {/* iPhone Mockup Frame */}
       <div className="relative">
         <img
-          src="/src/assets/mockup/iPhone15.webp"
+          src={iPhoneMockup}
           alt="iPhone Mockup"
           className="w-full h-auto relative z-10 pointer-events-none"
         />
