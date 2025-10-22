@@ -8,7 +8,7 @@ export interface Template {
   id: string;
   name: string;
   description: string | null;
-  category: 'business' | 'personal' | 'creative' | 'ecommerce' | 'portfolio' | 'general' | 'marketing';
+  category: 'business' | 'personal' | 'creative' | 'ecommerce' | 'portfolio' | 'general' | 'marketing' | 'games' | 'music' | 'digital_product' | 'developer';
   preview_image_url: string | null;
   creator_user_id: string;
   creator_username: string;
@@ -32,7 +32,7 @@ export interface TemplatePreview {
 export interface CreateTemplateData {
   name: string;
   description?: string;
-  category?: 'business' | 'personal' | 'creative' | 'ecommerce' | 'portfolio' | 'general' | 'marketing';
+  category?: 'business' | 'personal' | 'creative' | 'ecommerce' | 'portfolio' | 'general' | 'marketing' | 'games' | 'music' | 'digital_product' | 'developer';
   tags?: string[];
 }
 

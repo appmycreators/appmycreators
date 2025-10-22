@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useTemplatePreview } from '@/hooks/useTemplatePreview';
 import { TemplatePreviewRenderer } from './TemplatePreviewRenderer';
@@ -9,6 +9,12 @@ interface TemplatePreviewMockupProps {
   previewImageUrl?: string | null;
   templateName: string;
   isLoading?: boolean;
+  /** 
+   * Se true, prioriza preview_image_url (mais leve). 
+   * Se preview_image_url não existir, carrega dados do banco como fallback.
+   * Se false, sempre carrega preview real do banco.
+   */
+  useLightweightPreview?: boolean;
 }
 
 export const TemplatePreviewMockup: React.FC<TemplatePreviewMockupProps> = ({
@@ -16,18 +22,50 @@ export const TemplatePreviewMockup: React.FC<TemplatePreviewMockupProps> = ({
   previewImageUrl,
   templateName,
   isLoading = false,
+  useLightweightPreview = true, // Por padrão usa preview leve
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Intersection Observer para lazy loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect(); // Desconectar após carregar
+        }
+      },
+      {
+        rootMargin: '100px', // Começa a carregar 100px antes de entrar na viewport
+        threshold: 0.1,
+      }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
   
   // Carregar dados do template para preview real
-  const { data: templateData, isLoading: loadingTemplate } = useTemplatePreview(templateId || null);
+  // Se useLightweightPreview=true E tem preview_image_url, não carrega dados
+  // Se useLightweightPreview=true MAS NÃO tem preview_image_url, carrega dados como fallback
+  const shouldLoadFullData = isInView && (
+    !useLightweightPreview || !previewImageUrl
+  );
+  const { data: templateData, isLoading: loadingTemplate } = useTemplatePreview(
+    shouldLoadFullData ? (templateId || null) : null
+  );
 
   useEffect(() => {
     setImageLoaded(false);
   }, [previewImageUrl]);
 
   return (
-    <div className="relative w-full max-w-[320px] mx-auto">
+    <div ref={containerRef} className="relative w-full max-w-[320px] mx-auto">
       {/* iPhone Mockup Frame */}
       <div className="relative">
         <img
@@ -67,16 +105,21 @@ export const TemplatePreviewMockup: React.FC<TemplatePreviewMockupProps> = ({
               `}
             </style>
             
-            {isLoading || loadingTemplate ? (
+            {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
               </div>
-            ) : templateData ? (
-              // Preview REAL do template usando dados do banco (zoom 60%)
-              <div className="template-preview-container">
-                <TemplatePreviewRenderer templateData={templateData} />
+            ) : !isInView ? (
+              // Placeholder enquanto não está visível
+              <div className="flex items-center justify-center h-full bg-gradient-to-br from-slate-50 to-slate-100">
+                <div className="text-slate-300 text-xs">Carregando...</div>
+              </div>
+            ) : loadingTemplate ? (
+              <div className="flex items-center justify-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
               </div>
             ) : previewImageUrl ? (
+              // Preview com imagem est\u00e1tica (MAIS LEVE)
               <>
                 {!imageLoaded && (
                   <div className="flex items-center justify-center h-full">
@@ -91,6 +134,11 @@ export const TemplatePreviewMockup: React.FC<TemplatePreviewMockupProps> = ({
                   onError={() => setImageLoaded(true)}
                 />
               </>
+            ) : templateData ? (
+              // Preview REAL do template usando dados do banco (zoom 60%)
+              <div className="template-preview-container">
+                <TemplatePreviewRenderer templateData={templateData} />
+              </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-full p-6 text-center bg-gradient-to-br from-slate-100 to-slate-200">
                 <div className="bg-white rounded-2xl p-8 shadow-lg max-w-[240px]">

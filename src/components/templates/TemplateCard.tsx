@@ -24,6 +24,7 @@ interface TemplateCardProps {
   template: Template;
   onUseTemplate?: (pageId: string) => void;
   onDelete?: (templateId: string) => void;
+  useLightweightPreview?: boolean;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -33,10 +34,14 @@ const CATEGORY_LABELS: Record<string, string> = {
   creative: 'Criativo',
   ecommerce: 'E-commerce',
   portfolio: 'Portfólio',
+  games: 'Games',
+  music: 'Música',
+  digital_product: 'Produto Digital',
+  developer: 'Developer',
   general: 'Geral',
 };
 
-export const TemplateCard: React.FC<TemplateCardProps> = ({ template, onUseTemplate, onDelete }) => {
+export const TemplateCard: React.FC<TemplateCardProps> = ({ template, onUseTemplate, onDelete, useLightweightPreview = true }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -141,6 +146,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, onUseTempl
           templateId={template.id}
           previewImageUrl={template.preview_image_url}
           templateName={template.name}
+          useLightweightPreview={useLightweightPreview}
         />
 
         

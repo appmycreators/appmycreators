@@ -111,13 +111,17 @@ const Home = () => {
                   <Sparkles className="h-4 w-4 mr-1" />
                   Destaques
                 </TabsTrigger>
+                <TabsTrigger value="general">Geral</TabsTrigger>
                 <TabsTrigger value="marketing">Marketing</TabsTrigger>
                 <TabsTrigger value="business">Negócios</TabsTrigger>
                 <TabsTrigger value="personal">Pessoal</TabsTrigger>
                 <TabsTrigger value="creative">Criativo</TabsTrigger>
                 <TabsTrigger value="ecommerce">E-commerce</TabsTrigger>
                 <TabsTrigger value="portfolio">Portfólio</TabsTrigger>
-                <TabsTrigger value="general">Geral</TabsTrigger>
+                <TabsTrigger value="games">Games</TabsTrigger>
+                <TabsTrigger value="music">Música</TabsTrigger>
+                <TabsTrigger value="digital_product">Produto Digital</TabsTrigger>
+                <TabsTrigger value="developer">Developer</TabsTrigger>
               </TabsList>
             </Tabs>
 
@@ -155,6 +159,7 @@ const Home = () => {
                         console.log('Página criada:', pageId);
                       }}
                       onDelete={handleDeleteTemplate}
+                      useLightweightPreview={true}
                     />
                   </motion.div>
                 ))}
