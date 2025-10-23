@@ -1,3 +1,4 @@
+import { useMemo, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { usePublicPageOptimized } from "@/hooks/usePublicPage";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,6 +9,7 @@ import FontProvider from "./FontProvider";
 import { Button } from "@/components/ui/button";
 import FloatingWhatsAppButton from "./FloatingWhatsAppButton";
 import { FloatingChatButton } from "./flow/public/FloatingChatButton";
+import { trackPageView, trackResourceClick } from "@/services/analyticsService";
 
 
 /**
@@ -18,6 +20,15 @@ import { FloatingChatButton } from "./flow/public/FloatingChatButton";
 const PublicPage = () => {
   const { slug } = useParams<{ slug: string }>();
   const { page, resources, galleries, socials, socialsDisplayMode, settings, loading, error } = usePublicPageOptimized(slug || '');
+  const pageViewTime = useRef<number>(Date.now());
+  
+  // Track page view quando a página carregar
+  useEffect(() => {
+    if (page?.id && slug && !loading) {
+      trackPageView(page.id, slug);
+      pageViewTime.current = Date.now();
+    }
+  }, [page?.id, slug, loading]);
   
   const handleLinkClick = (url: string) => {
     if (!url) return;
@@ -26,6 +37,19 @@ const PublicPage = () => {
   };
   
   const handleItemClick = (item: any) => {
+    // Track click antes de abrir o link
+    if (page?.id && item.id) {
+      trackResourceClick(
+        page.id,
+        item.id,
+        item.type || 'link',
+        item.title || item.name || '',
+        item.url || item.linkUrl || item.link || '',
+        pageViewTime.current
+      );
+    }
+    
+    // Abrir link (lógica existente)
     if (item.url || item.linkUrl) {
       handleLinkClick(item.url || item.linkUrl);
     } else if (item.link) {
@@ -45,33 +69,45 @@ const PublicPage = () => {
       </div>
     );
   }
-  const backgroundStyle = settings.backgroundColor 
-    ? { backgroundColor: settings.backgroundColor }
-    : { background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' };
+  // Background style memoizado
+  const backgroundStyle = useMemo(() => 
+    settings.backgroundColor 
+      ? { backgroundColor: settings.backgroundColor }
+      : { background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)' },
+    [settings.backgroundColor]
+  );
   
-  // Processar conteúdo - incluindo galerias com items
-  const processedContent = resources
-    ?.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
-    .map((resource: any) => {
-      // Se for galeria, incluir os items da galeria
-      if (resource.type === 'gallery') {
-        const gallery = galleries?.find(g => g.id === resource.id);
+  // Processar conteúdo - incluindo galerias com items (memoizado)
+  const processedContent = useMemo(() => {
+    return resources
+      ?.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+      .map((resource: any) => {
+        // Se for galeria, incluir os items da galeria
+        if (resource.type === 'gallery') {
+          const gallery = galleries?.find(g => g.id === resource.id);
+          return {
+            ...resource,
+            items: gallery?.items || [],
+            title: gallery?.title || resource.title
+          };
+        }
+        
         return {
           ...resource,
-          items: gallery?.items || [],
-          title: gallery?.title || resource.title
+          type: resource.type || 'link'
         };
-      }
-      
-      return {
-        ...resource,
-        type: resource.type || 'link'
-      };
-    }) || [];
+      }) || [];
+  }, [resources, galleries]);
   
-  // Debug: Log flow resources
-  console.log('📦 Processed Content:', processedContent);
-  console.log('🔍 Flow Resources:', processedContent.filter((r: any) => r.type === 'flow'));
+  // Buscar flow resource ativo (memoizado)
+  const flowResource = useMemo(() => 
+    processedContent.find((r: any) => 
+      r.type === 'flow' && 
+      r.is_visible && 
+      r.flow_data?.flow?.is_published
+    ),
+    [processedContent]
+  );
   
   return (
     <FontProvider fontFamily={settings.fontFamily}>
@@ -192,40 +228,14 @@ const PublicPage = () => {
         )}
 
         {/* Botão Flutuante do Flow (Chat) */}
-        {!loading && (() => {
-          // Buscar resource de flow ativo e publicado
-          const flowResource = processedContent.find((r: any) => 
-            r.type === 'flow' && 
-            r.is_visible && 
-            r.flow_data?.flow?.is_published
-          );
-
-          console.log('🔍 Buscando flow resource:', {
-            allFlows: processedContent.filter((r: any) => r.type === 'flow'),
-            flowResource,
-            hasFlowData: !!flowResource?.flow_data,
-            isPublished: flowResource?.flow_data?.flow?.is_published,
-            isVisible: flowResource?.is_visible
-          });
-
-          if (!flowResource?.flow_data) {
-            console.log('❌ Nenhum flow resource encontrado ou flow_data ausente');
-            return null;
-          }
-
-          const { flow, nodes, edges } = flowResource.flow_data;
-
-          console.log('✅ Renderizando FloatingChatButton:', { flow, nodes: nodes?.length, edges: edges?.length });
-
-          return (
-            <FloatingChatButton
-              flow={flow}
-              nodes={nodes}
-              edges={edges}
-              primaryColor={settings.primaryColor || flow.primary_color}
-            />
-          );
-        })()}
+        {!loading && flowResource?.flow_data && (
+          <FloatingChatButton
+            flow={flowResource.flow_data.flow}
+            nodes={flowResource.flow_data.nodes}
+            edges={flowResource.flow_data.edges}
+            primaryColor={settings.primaryColor || flowResource.flow_data.flow.primary_color}
+          />
+        )}
       </div>
     </FontProvider>
   );

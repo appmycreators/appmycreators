@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/ui/topbar';
@@ -36,83 +36,25 @@ import {
   Link as LinkIcon,
 } from 'lucide-react';
 
+import { usePageAnalytics } from '@/hooks/useAnalytics';
+
 type Period = '7' | '28' | '90';
 
-// Função para gerar dados fictícios
-const generateMockData = (period: Period) => {
-  const days = parseInt(period);
-  const today = new Date();
-  
-  // Dados de visitas e cliques ao longo do tempo
-  const dailyData = Array.from({ length: days }, (_, i) => {
-    const date = new Date(today);
-    date.setDate(date.getDate() - (days - 1 - i));
-    const visits = Math.floor(Math.random() * 300) + 100;
-    const clicks = Math.floor(visits * (Math.random() * 0.3 + 0.1)); // 10-40% CTR
-    
-    return {
-      date: date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-      visits,
-      clicks,
-      ctr: ((clicks / visits) * 100).toFixed(1),
-    };
-  });
-
-  // Links mais acessados
-  const topLinks = [
-    { name: 'Instagram', url: 'instagram.com/..', clicks: Math.floor(Math.random() * 500) + 300 },
-    { name: 'WhatsApp', url: 'wa.me/...', clicks: Math.floor(Math.random() * 400) + 250 },
-    { name: 'Produto Premium', url: 'loja.com/produto', clicks: Math.floor(Math.random() * 350) + 200 },
-    { name: 'YouTube Channel', url: 'youtube.com/...', clicks: Math.floor(Math.random() * 300) + 150 },
-    { name: 'TikTok Profile', url: 'tiktok.com/@...', clicks: Math.floor(Math.random() * 280) + 120 },
-  ].sort((a, b) => b.clicks - a.clicks);
-
-  // Top países
-  const topCountries = [
-    { name: 'Brasil', code: 'BR', visits: Math.floor(Math.random() * 1500) + 800, flag: '🇧🇷' },
-    { name: 'Estados Unidos', code: 'US', visits: Math.floor(Math.random() * 800) + 300, flag: '🇺🇸' },
-    { name: 'Portugal', code: 'PT', visits: Math.floor(Math.random() * 500) + 200, flag: '🇵🇹' },
-    { name: 'Argentina', code: 'AR', visits: Math.floor(Math.random() * 400) + 150, flag: '🇦🇷' },
-    { name: 'Reino Unido', code: 'GB', visits: Math.floor(Math.random() * 300) + 100, flag: '🇬🇧' },
-  ].sort((a, b) => b.visits - a.visits);
-
-  // Top IPs (dados fictícios para privacidade)
-  const topIPs = [
-    { ip: '187.120.45.***', visits: Math.floor(Math.random() * 50) + 20, city: 'São Paulo' },
-    { ip: '201.45.78.***', visits: Math.floor(Math.random() * 40) + 15, city: 'Rio de Janeiro' },
-    { ip: '179.234.12.***', visits: Math.floor(Math.random() * 35) + 10, city: 'Belo Horizonte' },
-    { ip: '200.156.89.***', visits: Math.floor(Math.random() * 30) + 8, city: 'Brasília' },
-    { ip: '191.78.234.***', visits: Math.floor(Math.random() * 25) + 5, city: 'Curitiba' },
-  ].sort((a, b) => b.visits - a.visits);
-
-  // Tempo até o click (em segundos)
-  const timeToClick = [
-    { range: '0-5s', count: Math.floor(Math.random() * 300) + 100 },
-    { range: '6-10s', count: Math.floor(Math.random() * 250) + 80 },
-    { range: '11-30s', count: Math.floor(Math.random() * 200) + 60 },
-    { range: '31-60s', count: Math.floor(Math.random() * 150) + 40 },
-    { range: '60s+', count: Math.floor(Math.random() * 100) + 20 },
-  ];
-
-  // Totais
-  const totalVisits = dailyData.reduce((sum, day) => sum + day.visits, 0);
-  const totalClicks = dailyData.reduce((sum, day) => sum + day.clicks, 0);
-  const avgCTR = ((totalClicks / totalVisits) * 100).toFixed(1);
-  const avgTimeToClick = (Math.random() * 20 + 10).toFixed(1); // 10-30 segundos
-
-  return {
-    dailyData,
-    topLinks,
-    topCountries,
-    topIPs,
-    timeToClick,
-    stats: {
-      totalVisits,
-      totalClicks,
-      avgCTR,
-      avgTimeToClick,
-    },
-  };
+// Mapa de códigos de país para flags
+const countryFlags: Record<string, string> = {
+  'BR': '🇧🇷',
+  'US': '🇺🇸',
+  'PT': '🇵🇹',
+  'AR': '🇦🇷',
+  'GB': '🇬🇧',
+  'ES': '🇪🇸',
+  'FR': '🇫🇷',
+  'IT': '🇮🇹',
+  'DE': '🇩🇪',
+  'MX': '🇲🇽',
+  'CL': '🇨🇱',
+  'CO': '🇨🇴',
+  'PE': '🇵🇪',
 };
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
@@ -120,8 +62,63 @@ const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'];
 const Analytics = () => {
   const { user } = useAuth();
   const [period, setPeriod] = useState<Period>('7');
-
-  const data = useMemo(() => generateMockData(period), [period]);
+  const { data, loading, error } = usePageAnalytics(period);
+  
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-background overflow-hidden" style={{ backgroundColor: '#f9fafb' }}>
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto"></div>
+              <p className="text-lg text-muted-foreground">Carregando analytics...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error) {
+    return (
+      <div className="flex h-screen bg-background overflow-hidden" style={{ backgroundColor: '#f9fafb' }}>
+        <Sidebar />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Topbar />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <div className="text-6xl">📊</div>
+              <h2 className="text-2xl font-bold text-destructive">Erro ao carregar analytics</h2>
+              <p className="text-muted-foreground max-w-md">
+                {error?.message || 'Ocorreu um erro ao buscar os dados. Tente novamente mais tarde.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Preparar dados com valores padrão
+  const stats = data?.summary || {
+    totalViews: 0,
+    totalClicks: 0,
+    avgCTR: 0,
+    avgTimeToClick: 0,
+  };
+  
+  const dailyData = data?.dailyData || [];
+  const topLinks = data?.topLinks || [];
+  const topCountries = (data?.topCountries || []).map(country => ({
+    ...country,
+    flag: countryFlags[country.code] || '🌍',
+  }));
+  const timeToClick = data?.timeToClick || [];
+  const topLocations = data?.topLocations || [];
 
   return (
     <div className="flex h-screen bg-background overflow-hidden" style={{ backgroundColor: '#f9fafb' }}>
@@ -159,7 +156,7 @@ const Analytics = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Total de Visitas</p>
-                    <p className="text-3xl font-bold mt-1">{data.stats.totalVisits.toLocaleString()}</p>
+                    <p className="text-3xl font-bold mt-1">{stats.totalViews.toLocaleString()}</p>
                   </div>
                   <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
                     <Eye className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -171,7 +168,7 @@ const Analytics = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Total de Clicks</p>
-                    <p className="text-3xl font-bold mt-1">{data.stats.totalClicks.toLocaleString()}</p>
+                    <p className="text-3xl font-bold mt-1">{stats.totalClicks.toLocaleString()}</p>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
                     <MousePointerClick className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -183,7 +180,7 @@ const Analytics = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Click-Through Rate</p>
-                    <p className="text-3xl font-bold mt-1">{data.stats.avgCTR}%</p>
+                    <p className="text-3xl font-bold mt-1">{stats.avgCTR}%</p>
                   </div>
                   <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/20 rounded-full flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-pink-600 dark:text-pink-400" />
@@ -195,7 +192,7 @@ const Analytics = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Tempo Médio p/ Click</p>
-                    <p className="text-3xl font-bold mt-1">{data.stats.avgTimeToClick}s</p>
+                    <p className="text-3xl font-bold mt-1">{stats.avgTimeToClick}s</p>
                   </div>
                   <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
                     <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400" />
@@ -213,7 +210,7 @@ const Analytics = () => {
                   Visitas e Clicks
                 </h2>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={data.dailyData}>
+                  <LineChart data={dailyData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" style={{ fontSize: '12px' }} />
                     <YAxis style={{ fontSize: '12px' }} />
@@ -244,7 +241,7 @@ const Analytics = () => {
                   Tempo até o Click
                 </h2>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={data.timeToClick}>
+                  <BarChart data={timeToClick}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="range" style={{ fontSize: '12px' }} />
                     <YAxis style={{ fontSize: '12px' }} />
@@ -264,7 +261,7 @@ const Analytics = () => {
                   Links Mais Acessados
                 </h2>
                 <div className="space-y-4">
-                  {data.topLinks.map((link, index) => (
+                  {topLinks.length > 0 ? topLinks.map((link, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex-1">
                         <p className="font-medium">{link.name}</p>
@@ -275,7 +272,9 @@ const Analytics = () => {
                         <p className="text-xs text-muted-foreground">clicks</p>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-center text-muted-foreground py-8">Nenhum link foi clicado ainda</p>
+                  )}
                 </div>
               </Card>
 
@@ -286,7 +285,7 @@ const Analytics = () => {
                   Top Países
                 </h2>
                 <div className="space-y-4">
-                  {data.topCountries.map((country, index) => (
+                  {topCountries.length > 0 ? topCountries.map((country, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1">
                         <span className="text-2xl">{country.flag}</span>
@@ -300,28 +299,34 @@ const Analytics = () => {
                         <p className="text-xs text-muted-foreground">visitas</p>
                       </div>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-center text-muted-foreground py-8">Nenhuma visita registrada ainda</p>
+                  )}
                 </div>
               </Card>
             </div>
 
-            {/* Top IPs */}
+            {/* Top Localizações (IP + Cidade + País) */}
             <Card className="p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Wifi className="w-5 h-5" />
-                Top IPs (Dados Anonimizados)
+                Top Localizações (IP + Cidade)
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                {data.topIPs.map((ipData, index) => (
-                  <Card key={index} className="p-4 border-2">
-                    <div className="text-center">
-                      <p className="font-mono text-sm font-semibold">{ipData.ip}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{ipData.city}</p>
-                      <p className="text-2xl font-bold text-primary mt-2">{ipData.visits}</p>
+              <div className="space-y-3">
+                {topLocations.length > 0 ? topLocations.map((location, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{location.city}, {location.country}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{location.ip}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-lg">{location.visits}</p>
                       <p className="text-xs text-muted-foreground">visitas</p>
                     </div>
-                  </Card>
-                ))}
+                  </div>
+                )) : (
+                  <p className="text-center text-muted-foreground py-8">Nenhum IP registrado ainda</p>
+                )}
               </div>
             </Card>
 
@@ -332,7 +337,7 @@ const Analytics = () => {
                 Distribuição de CTR por Dia
               </h2>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={data.dailyData}>
+                <BarChart data={dailyData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" style={{ fontSize: '12px' }} />
                   <YAxis style={{ fontSize: '12px' }} />

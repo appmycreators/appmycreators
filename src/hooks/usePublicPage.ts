@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 
@@ -13,56 +12,52 @@ interface PublicPageData {
   error: string | null;
 }
 
+const getInitialSettings = (slug: string) => ({
+  profileName: slug || '',
+  bio: '',
+  avatarUrl: '',
+  avatarBorderColor: '#ffffff',
+  backgroundColor: '',
+  headerMediaUrl: '',
+  headerMediaType: '',
+  headerMediaAspectRatio: null,
+  cardBgColor: null,
+  cardTextColor: null,
+  headerNameColor: null,
+  headerBioColor: null,
+  showBadge: false,
+  nitroAnimationUrl: null,
+  galleryContainerColor: null,
+  galleryTitleColor: null,
+  galleryCardBgColor: null,
+  galleryProductNameColor: null,
+  galleryProductDescriptionColor: null,
+  galleryButtonBgColor: null,
+  galleryButtonTextColor: null,
+  galleryPriceColor: null,
+  galleryHighlightBgColor: null,
+  galleryHighlightTextColor: null,
+  socialIconBgColor: null,
+  socialIconColor: null,
+  fontFamily: 'Poppins',
+});
+
 export const usePublicPageOptimized = (slug: string): PublicPageData => {
-  const initialSettings = useMemo(() => ({
-    profileName: slug || '',
-    bio: '',
-    avatarUrl: '',
-    avatarBorderColor: '#ffffff',
-    backgroundColor: '',
-    headerMediaUrl: '',
-    headerMediaType: '',
-    headerMediaAspectRatio: null,
-    cardBgColor: null,
-    cardTextColor: null,
-    headerNameColor: null,
-    headerBioColor: null,
-    showBadge: false,
-    nitroAnimationUrl: null,
-    galleryContainerColor: null,
-    galleryTitleColor: null,
-    galleryCardBgColor: null,
-    galleryProductNameColor: null,
-    galleryProductDescriptionColor: null,
-    galleryButtonBgColor: null,
-    galleryButtonTextColor: null,
-    galleryPriceColor: null,
-    galleryHighlightBgColor: null,
-    galleryHighlightTextColor: null,
-    socialIconBgColor: null,
-    socialIconColor: null,
-    fontFamily: 'Poppins',
-  }), [slug]);
 
   const query = useQuery({
     queryKey: ['publicPage', slug],
     enabled: !!slug,
     queryFn: async () => {
       if (!slug) throw new Error('Slug não fornecido');
-      console.log('🔄 Buscando dados da página:', slug);
       const { data: pageData, error } = await supabase.rpc('get_public_page_data_by_slug', { p_slug: slug });
-      if (error) {
-        console.error('❌ Erro ao buscar página:', error);
-        throw error;
-      }
+      if (error) throw error;
       if (!pageData || (pageData as any).error) {
         const msg = (pageData as any)?.error || 'Página não encontrada';
         throw new Error(msg);
       }
-      console.log('✅ Dados da página recebidos:', pageData);
       return pageData as any;
     },
-    staleTime: 0, // Desabilitar cache temporariamente para debug
+    staleTime: 1000 * 60 * 5, // 5 minutos de cache
     retry: 1,
     refetchOnWindowFocus: false,
   });
@@ -73,7 +68,7 @@ export const usePublicPageOptimized = (slug: string): PublicPageData => {
     galleries: [],
     socials: {},
     socialsDisplayMode: 'bottom',
-    settings: initialSettings,
+    settings: getInitialSettings(slug),
     loading: query.isPending,
     error: null,
   };

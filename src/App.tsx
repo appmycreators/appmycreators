@@ -77,7 +77,9 @@ const AnimatedRoutes = () => {
             } />
             <Route path="/analytics" element={
               <ProtectedRoute>
-                <Analytics />
+                <PageProvider>
+                  <Analytics />
+                </PageProvider>
               </ProtectedRoute>
             } />
             <Route path="/pages" element={
