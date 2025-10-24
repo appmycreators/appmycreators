@@ -37,33 +37,33 @@ const ShareModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] p-0 gap-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle className="text-center text-lg font-semibold">
+      <DialogContent className="sm:max-w-[500px] max-w-[calc(100vw-2rem)] p-0 gap-0 overflow-hidden rounded-2xl">
+        <DialogHeader className="px-4 sm:px-6 pt-6 pb-4">
+          <DialogTitle className="text-center text-base sm:text-lg font-semibold">
             Compartilhar esta página
           </DialogTitle>
         </DialogHeader>
 
-        <div className="px-6 pb-6">
-          <div className="bg-gray-50 rounded-2xl p-6 space-y-4">
+        <div className="px-4 sm:px-6 pb-6">
+          <div className="bg-gray-50 rounded-2xl p-4 sm:p-6 space-y-4">
             {/* Avatar e Nome */}
-            <div className="flex flex-col items-center space-y-3">
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-white shadow-md border-2 border-white">
+            <div className="flex flex-col items-center space-y-2 sm:space-y-3">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-white shadow-md border-2 border-white">
                 <img
                   src={profileImageUrl || "/images/icon-512x512.png"}
                   alt={profileName}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h3 className="font-semibold text-base text-gray-900">
+              <h3 className="font-semibold text-sm sm:text-base text-gray-900">
                 {profileName}
               </h3>
             </div>
 
             {/* URL com botão de copiar */}
             <div className="relative">
-              <div className="bg-white rounded-xl px-4 py-3 pr-12 border border-gray-200">
-                <p className="text-sm text-gray-600 truncate">{pageUrl}</p>
+              <div className="bg-white rounded-xl px-3 sm:px-4 py-3 pr-11 sm:pr-12 border border-gray-200">
+                <p className="text-xs sm:text-sm text-gray-600 truncate">{pageUrl}</p>
               </div>
               <Button
                 variant="ghost"
