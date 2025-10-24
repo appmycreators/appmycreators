@@ -143,6 +143,7 @@ const PublicPage = () => {
               headerMediaType={settings.headerMediaType}
               avatarBorderColor={settings.avatarBorderColor}
               nitroAnimationUrl={settings.nitroAnimationUrl}
+              pageSlug={slug}
             />
           ) : null}
           
@@ -207,14 +208,26 @@ const PublicPage = () => {
             />
           )}
           
-          <div className="flex justify-center pt-6">
+          <div className="flex flex-col items-center pt-6 pb-4 space-y-4">
             <Button 
               variant="outline" 
               className="h-12 rounded-full px-6 bg-white"
-              onClick={() => window.location.href = '/'}
+              onClick={() => window.open('https://mycreators.me', '_blank')}
             >
               Crie seu MyCreator Grátis
             </Button>
+            
+            <a 
+              href="https://mycreators.me" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-white shadow-sm">
+                <img src="/images/icon-512x512.png" alt="MyCreators" className="w-full h-full object-cover" />
+              </div>
+              <span className="font-medium">mycreators.me</span>
+            </a>
           </div>
         </div>
         

@@ -1,7 +1,10 @@
 import { BadgeCheck, MoreVertical } from "lucide-react";
+import { useState, lazy, Suspense } from "react";
 import LottieAnimation from "./LottieAnimation";
 import ResponsiveImage from "@/components/ResponsiveImage";
 import profileImage from "@/assets/avatar.png";
+
+const ShareModal = lazy(() => import("./ShareModal"));
 
 /**
  * PublicHeader - Cabeçalho da página pública
@@ -20,6 +23,7 @@ interface PublicHeaderProps {
   headerMediaType?: string;
   avatarBorderColor?: string;
   nitroAnimationUrl?: string;
+  pageSlug?: string;
 }
 
 const PublicHeader = ({
@@ -34,7 +38,19 @@ const PublicHeader = ({
   headerMediaType,
   avatarBorderColor,
   nitroAnimationUrl,
+  pageSlug,
 }: PublicHeaderProps) => {
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  
+  // Construir URL completa da página
+  const pageUrl = pageSlug 
+    ? `${window.location.origin}/${pageSlug}`
+    : window.location.href;
+
+  const handleShareClick = () => {
+    setIsShareModalOpen(true);
+  };
+
   return (
     <>
       {headerMediaUrl && (
@@ -106,7 +122,14 @@ const PublicHeader = ({
               </p>
             </div>
 
-            <button className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white z-10">
+            <a href="https://mycreators.me" target="_blank" rel="noopener noreferrer" className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center z-10 overflow-hidden">
+              <img src="/images/icon-512x512.png" alt="MyCreators" className="w-full h-full object-cover" />
+            </a>
+
+            <button 
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white z-10 hover:bg-black/70 transition-colors"
+              onClick={handleShareClick}
+            >
               <MoreVertical className="w-5 h-5" />
             </button>
           </div>
@@ -164,7 +187,31 @@ const PublicHeader = ({
               </p>
             )}
           </div>
+
+          <a href="https://mycreators.me" target="_blank" rel="noopener noreferrer" className="absolute top-3 left-3 w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center z-10 overflow-hidden">
+            <img src="/images/icon-512x512.png" alt="MyCreators" className="w-full h-full object-cover" />
+          </a>
+
+          <button 
+            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white z-10 hover:bg-black/70 transition-colors"
+            onClick={handleShareClick}
+          >
+            <MoreVertical className="w-5 h-5" />
+          </button>
         </div>
+      )}
+
+      {/* Modal de Compartilhamento - Lazy Loaded */}
+      {isShareModalOpen && (
+        <Suspense fallback={null}>
+          <ShareModal
+            isOpen={isShareModalOpen}
+            onClose={() => setIsShareModalOpen(false)}
+            profileImageUrl={profileImageUrl}
+            profileName={name}
+            pageUrl={pageUrl}
+          />
+        </Suspense>
       )}
     </>
   );
